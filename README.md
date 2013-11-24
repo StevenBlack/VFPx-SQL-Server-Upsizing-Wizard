@@ -55,4 +55,4 @@ This update has the following bug fixes:
 * You can now use field names up to 128 characters; the former limit was 30.
 
 
-Review [article on CODE Magazine)[http://www.code-magazine.com/Article.aspx?quickid=0703052]
+Review [article on CODE Magazine](http://www.code-magazine.com/Article.aspx?quickid=0703052)
