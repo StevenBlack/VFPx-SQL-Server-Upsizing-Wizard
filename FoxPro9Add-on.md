@@ -19,14 +19,19 @@ If you comply with these license terms, you have the rights below.
 2. ADDITIONAL LICENSING REQUIREMENTS AND/OR USE RIGHTS.
 	a. Distributable Code.  The software contains code that you are permitted to distribute in programs you develop if you comply with the terms below.
 		i. Right to Use and Distribute.  The code and text files listed below are “Distributable Code.”
+		
 			* Code to Modify and Distribute.  You may modify, copy, and distribute the source and object code form of code marked as “Libraries”, “Sample Code” and “Extensions” in the Sedna install folder.
 			* Third Party Distribution.  You may permit distributors of your programs to copy and distribute the Distributable Code as part of those programs.
+
 		ii. Distribution Requirements.  For any Distributable Code you distribute, you must
+		
 			* add significant primary functionality to it in your programs;
 			* require distributors and external end users to agree to terms that protect it at least as much as this agreement; 
 			* display your valid copyright notice on your programs; and
 			* indemnify, defend, and hold harmless Microsoft from any claims, including attorneys’ fees, related to the distribution or use of your programs.
+
 		iii. Distribution Restrictions.  You may not
+		
 			* alter any copyright, trademark or patent notice in the Distributable Code; 
 			* use Microsoft’s trademarks in your programs’ names or in a way that suggests your programs come from or are endorsed by Microsoft; 
 			* distribute Distributable Code to run on a platform other than the Windows platform;
@@ -68,8 +73,8 @@ If you comply with these license terms, you have the rights below.
 12. Limitation on and Exclusion of Remedies and Damages.  You can recover from Microsoft and its suppliers only direct damages up to U.S. $5.00.  You cannot recover any other damages, including consequential, lost profits, special, indirect or incidental damages.
 
 This limitation applies to
+
 	* anything related to the software, services, content (including code) on third party Internet sites, or third party programs; and
 	* claims for breach of contract, breach of warranty, guarantee or condition, strict liability, negligence, or other tort to the extent permitted by applicable law.
 	
 It also applies even if Microsoft knew or should have known about the possibility of the damages.  The above limitation or exclusion may not apply to you because your country may not allow the exclusion or limitation of incidental, consequential or other damages.
-
