@@ -1,0 +1,191 @@
+SCCTEXT Version 4.0.0.2
+PLATFORM C(8,0),UNIQUEID C(10,0),TIMESTAMP N(10,0),CLASS M(4,0),CLASSLOC M(4,0),BASECLASS M(4,0),OBJNAME M(4,0),PARENT M(4,0),PROPERTIES M(4,0),PROTECTED M(4,0),METHODS M(4,0),OBJCODE M(4,0),OLE M(4,0),OLE2 M(4,0),RESERVED1 M(4,0),RESERVED2 M(4,0),RESERVED3 M(4,0),RESERVED4 M(4,0),RESERVED5 M(4,0),RESERVED6 M(4,0),RESERVED7 M(4,0),RESERVED8 M(4,0),USER M(4,0)
+1252
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] Class     
+[START RESERVED1]
+VERSION = 3.0[END RESERVED1]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _QZP0N9QGH
+[CLASS] baseform
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] form
+[OBJNAME] messagebox2
+[START PROPERTIES]
+
+</VFPData>
+<memberdata name="cchoice" type="property" display="cChoice"/>
+<memberdata name="cfoxuserid" type="property" display="cFoxUserID" favorites="True"/>
+<memberdata name="cfoxusername" type="property" display="cFoxUserName" favorites="True"/>
+<memberdata name="cleanup" type="method" display="Cleanup"/>
+<memberdata name="lpersistsizeposition" type="property" display="lPersistSizePosition" favorites="True"/>
+<memberdata name="lrelease" type="property" display="lRelease"/>
+<memberdata name="lsavesettings" type="property" display="lSaveSettings" favorites="True"/>
+<memberdata name="opersist" type="property" display="oPersist"/>
+<memberdata name="refreshform" type="method" display="RefreshForm"/>
+<memberdata name="releasemembers" type="method" display="ReleaseMembers"/>
+<memberdata name="restoresettings" type="method" display="RestoreSettings" favorites="True"/>
+<memberdata name="savesettings" type="method" display="SaveSettings" favorites="True"/>
+BorderStyle = 2
+Caption = "Form1"
+DoCreate = .T.
+Height = 114
+MaxButton = .F.
+MinButton = .F.
+Name = "messagebox2"
+Width = 352
+WindowType = 1
+_memberdata =      975<VFPData>
+cchoice = 
+lsavesettings = .F.
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Init
+PARAMETERS lcMessageText, aButtonNames
+LOCAL i, lcColor
+
+this.caption=TITLE_TEXT_LOC
+this.wizlabel1.caption=lcMessageText
+
+*put captions on buttons
+FOR i=1 TO ALEN(aButtonNames,1)
+	iString=LTRIM(STR(i))
+	this.cmdbutton&iString..caption=aButtonNames[i]
+	this.cmdbutton&iString..visible=.T.
+NEXT
+
+lcColor = rgbscheme(1, 4)
+lcColor = 'rgb(' + substr(lcColor, at(',', lcColor, 3) + 1)
+this.FillColor = &lcColor
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+6[END RESERVED2]
+[START RESERVED3]
+cchoice The user's choice
+returnproperty
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Messagebox with customizable buttons[END RESERVED7]
+[START RESERVED8]
+..\include\upsizing.h[END RESERVED8]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _QZP0N9PIT
+[CLASS] basecommandbutton
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdButton1
+[PARENT] messagebox2
+[START PROPERTIES]
+Caption = "Command1"
+Left = 58
+Name = "cmdButton1"
+Top = 85
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+Thisform.cChoice ="1"
+Thisform.Hide()
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _QZP0N9PTE
+[CLASS] basecommandbutton
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdButton2
+[PARENT] messagebox2
+[START PROPERTIES]
+Caption = "Command1"
+Left = 139
+Name = "cmdButton2"
+Top = 85
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+Thisform.cChoice ="2"
+Thisform.Hide()
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _QZP0N9Q4I
+[CLASS] basecommandbutton
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdButton3
+[PARENT] messagebox2
+[START PROPERTIES]
+Caption = "Command1"
+Left = 219
+Name = "cmdButton3"
+Top = 85
+Visible = .F.
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+Thisform.cChoice ="3"
+Thisform.Hide()
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _QZP0N9QFN
+[CLASS] baseimage
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] image
+[OBJNAME] Image1
+[PARENT] messagebox2
+[START PROPERTIES]
+Height = 32
+Left = 10
+Name = "Image1"
+Picture = ..\bitmap\exclamation.bmp
+Top = 13
+Width = 32
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _QZP0N9QF3
+[CLASS] baselabel
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] label
+[OBJNAME] Wizlabel1
+[PARENT] messagebox2
+[START PROPERTIES]
+AutoSize = .F.
+Caption = "Label1"
+Height = 57
+Left = 68
+Name = "Wizlabel1"
+Top = 13
+Width = 272
+WordWrap = .T.
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] messagebox2
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+[EOF]

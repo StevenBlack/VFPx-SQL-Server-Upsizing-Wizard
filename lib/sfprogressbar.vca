@@ -1,0 +1,117 @@
+SCCTEXT Version 4.0.0.2
+PLATFORM C(8,0),UNIQUEID C(10,0),TIMESTAMP N(10,0),CLASS M(4,0),CLASSLOC M(4,0),BASECLASS M(4,0),OBJNAME M(4,0),PARENT M(4,0),PROPERTIES M(4,0),PROTECTED M(4,0),METHODS M(4,0),OBJCODE M(4,0),OLE M(4,0),OLE2 M(4,0),RESERVED1 M(4,0),RESERVED2 M(4,0),RESERVED3 M(4,0),RESERVED4 M(4,0),RESERVED5 M(4,0),RESERVED6 M(4,0),RESERVED7 M(4,0),RESERVED8 M(4,0),USER M(4,0)
+1252
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] Class     
+[START RESERVED1]
+VERSION =   3.00[END RESERVED1]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _1PZ0X2BGT
+[CLASS] progressbar
+[CLASSLOC] progressbarex.vcx
+[BASECLASS] container
+[OBJNAME] sfprogressbar
+[START PROPERTIES]
+
+</VFPData>
+<memberdata name="lsetup" type="property" display="lSetup"/>
+<memberdata name="setupprogressbar" type="method" display="SetupProgressBar"/>
+Name = "sfprogressbar"
+_memberdata =      161<VFPData>
+lsetup = .F.
+[END PROPERTIES]
+[START PROTECTED]
+lsetup
+[END PROTECTED]
+[START METHODS]
+PROCEDURE Init
+* This comment is here so the parent class' Init does nothing.
+
+ENDPROC
+PROCEDURE setupprogressbar
+* This code was copied from the parent class Init method. The purpose is to
+* allow properties to be set programmatically after instantiating the class,
+* and allow the progress bar to be set up accordingly. At the end of the code,
+* we set the lSetup property to .T. so Value_Assign will know it's been done.
+
+LOCAL lnBarWidth, lnCounter, lcControlName
+SET CLASSLIB TO (LOCFILE("progressbarex.vcx")) ADDITIVE
+
+WITH THIS
+	lnBarWidth = IIF(.solidbar, INT(.width/.bars), INT((.WIDTH - .bars) / .bars))
+	
+	FOR lnCounter = 1 TO this.bars -1
+		lcControlName = "pbBar" + TRANSFORM(lnCounter)
+		.ADDOBJECT(lcControlName, "pbbar", .BarColor, lnBarWidth, .HEIGHT -2)
+		.CONTROLS(lnCounter).LEFT = IIF(.solidbar, lnBarWidth * (lnCounter -1) + 1, (lnBarWidth * (lnCounter -1)) + (2 * (lnCounter -1)) + 1)
+		.CONTROLS(lnCounter).TOP = 1
+	ENDFOR
+
+	lnCounter = this.bars
+	lcControlName = "pbBar" + TRANSFORM(lnCounter)
+	.ADDOBJECT(lcControlName, "pbbar", .BarColor, lnBarWidth, .HEIGHT - 2)
+	.CONTROLS(lnCounter).LEFT = IIF(.solidbar, .CONTROLS(lnCounter - 1).LEFT + lnBarWidth, .CONTROLS(lnCounter - 1).LEFT + lnBarWidth + 2)
+	.CONTROLS(lnCounter).WIDTH = IIF(.solidbar, Max((.WIDTH - 1) -.CONTROLS(lnCounter).LEFT, 1),  Max(.WIDTH - .CONTROLS(lnCounter).LEFT - 2, 1))
+	.CONTROLS(lnCounter).TOP = 1
+	
+	IF .showpercentage
+		.ADDOBJECT("lblPercent", "Label")
+		WITH .lblPercent
+			.fontbold = .T.
+			.backstyle = 0
+			.alignment = 2
+			.autosize = .t.
+			.caption = "100%"
+			.top = (this.height/2 - .height/2)
+			.Left = this.width/2 - .width/2
+			.caption = "0%"
+			.visible = .T.
+			.ZOrder(1)
+		ENDWITH
+	ENDIF
+
+* Flag that we've been set up.
+
+	.lSetup = .T.
+ENDWITH
+
+ENDPROC
+PROCEDURE value_assign
+lparameters tuNewVal
+
+* Set up the progress bar if it hasn't been done.
+
+if not This.lSetup
+	This.SetupProgressBar()
+endif not This.lSetup
+
+* Ensure we're visible the first time we're needed.
+
+if tuNewVal <> 0 and not This.Visible
+	This.Visible = .T.
+endif tuNewVal <> 0 ...
+dodefault(tuNewVal)
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*setupprogressbar Sets up the progress bar
+_memberdata XML Metadata for customizable properties
+lsetup .T. if the progress bar has been set up
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] sfprogressbar
+[EOF]

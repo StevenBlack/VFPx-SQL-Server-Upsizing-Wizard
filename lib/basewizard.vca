@@ -1,0 +1,1626 @@
+SCCTEXT Version 4.0.0.2
+PLATFORM C(8,0),UNIQUEID C(10,0),TIMESTAMP N(10,0),CLASS M(4,0),CLASSLOC M(4,0),BASECLASS M(4,0),OBJNAME M(4,0),PARENT M(4,0),PROPERTIES M(4,0),PROTECTED M(4,0),METHODS M(4,0),OBJCODE M(4,0),OLE M(4,0),OLE2 M(4,0),RESERVED1 M(4,0),RESERVED2 M(4,0),RESERVED3 M(4,0),RESERVED4 M(4,0),RESERVED5 M(4,0),RESERVED6 M(4,0),RESERVED7 M(4,0),RESERVED8 M(4,0),USER M(4,0)
+1252
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] Class     
+[START RESERVED1]
+VERSION =   3.00[END RESERVED1]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RCS0T59BS
+[CLASS] basecheckbox
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] checkbox
+[OBJNAME] basewizardcheckbox
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+Alignment = 0
+Name = "basewizardcheckbox"
+_memberdata =      183<VFPData>
+lrefreshsteps = .T.
+[END PROPERTIES]
+[START PROTECTED]
+refreshsteps
+[END PROTECTED]
+[START METHODS]
+PROCEDURE InteractiveChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE ProgrammaticChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE refreshsteps
+local lnPos, ;
+	lcAlias, ;
+	lcField
+with This
+	lnPos = at('.', .ControlSource)
+	if .lRefreshSteps and lnPos > 0 and not .Value == evaluate(.ControlSource)
+		lcAlias = left(.ControlSource, lnPos - 1)
+		lcField = substr(.ControlSource, lnPos + 1)
+		if used(lcAlias)
+			replace (lcField) with .Value in (lcAlias)
+		else
+			store .Value to (.ControlSource)
+		endif used(lcAlias)
+	endif .lRefreshSteps ...
+endwith
+if pemstatus(Thisform, 'RefreshSteps', 5)
+	Thisform.RefreshSteps()
+else
+	Thisform.RefreshForm()
+endif pemstatus(Thisform, 'RefreshSteps', 5)
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refreshes the wizard form
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard CheckBox objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardcheckbox
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RCS0T68ZJ
+[CLASS] basecombobox
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] combobox
+[OBJNAME] basewizardcombobox
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+<memberdata name="lrefreshstepsonchange" type="property" display="lRefreshStepsOnChange" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+Name = "sfwizardcombobox"
+_memberdata =      291<VFPData>
+lrefreshsteps = .T.
+lrefreshstepsonchange = .T.
+[END PROPERTIES]
+[START PROTECTED]
+refreshsteps
+[END PROTECTED]
+[START METHODS]
+PROCEDURE InteractiveChange
+dodefault()
+with This
+	if .lRefreshStepsOnChange
+		.RefreshSteps()
+	endif .lRefreshStepsOnChange
+endwith
+
+ENDPROC
+PROCEDURE LostFocus
+* Call This.RefreshSteps if we didn't already.
+
+if not This.lRefreshStepsOnChange
+	This.RefreshSteps()
+endif not This.lRefreshStepsOnChange
+
+ENDPROC
+PROCEDURE ProgrammaticChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE refreshsteps
+local lnPos, ;
+	lcAlias, ;
+	lcField
+with This
+	lnPos = at('.', .ControlSource)
+	if .lRefreshSteps and lnPos > 0 and not .Value == evaluate(.ControlSource)
+		lcAlias = left(.ControlSource, lnPos - 1)
+		lcField = substr(.ControlSource, lnPos + 1)
+		if used(lcAlias)
+			replace (lcField) with .Value in (lcAlias)
+		else
+			store .Value to (.ControlSource)
+		endif used(lcAlias)
+	endif .lRefreshSteps ...
+endwith
+if pemstatus(Thisform, 'RefreshSteps', 5)
+	Thisform.RefreshSteps()
+else
+	Thisform.RefreshForm()
+endif pemstatus(Thisform, 'RefreshSteps', 5)
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refreshes the wizard form
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+lrefreshstepsonchange .T. to refresh the Wizard steps when the value is changed
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard ComboBox objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardcombobox
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RCT0LM35E
+[CLASS] basecommandbutton
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] commandbutton
+[OBJNAME] basewizardcommandbutton
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+Name = "sfwizardcommandbutton"
+_memberdata =      112<VFPData>
+lrefreshsteps = .T.
+[END PROPERTIES]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard CommandButton objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardcommandbutton
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _S2Z0PW6R2
+[CLASS] basecontainer
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] container
+[OBJNAME] basewizardcontainer
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps"/>
+Name = "sfwizardcontainer"
+_memberdata =       95<VFPData>
+lrefreshsteps = .T.
+[END PROPERTIES]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard Container objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardcontainer
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RUC0YUBFF
+[CLASS] baseeditbox
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] editbox
+[OBJNAME] basewizardeditbox
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+<memberdata name="lrefreshstepsonchange" type="property" display="lRefreshStepsOnChange" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+Name = "sfwizardeditbox"
+_memberdata =      291<VFPData>
+lrefreshsteps = .T.
+lrefreshstepsonchange = .T.
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE InteractiveChange
+dodefault()
+with This
+	if .lRefreshStepsOnChange
+		.RefreshSteps()
+	endif .lRefreshStepsOnChange
+endwith
+
+ENDPROC
+PROCEDURE LostFocus
+* Call This.RefreshSteps if we didn't already.
+
+if not This.lRefreshStepsOnChange
+	This.RefreshSteps()
+endif not This.lRefreshStepsOnChange
+
+ENDPROC
+PROCEDURE ProgrammaticChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE refreshsteps
+local lnPos, ;
+	lnStart, ;
+	lcAlias, ;
+	lcField
+with This
+	lnPos   = at('.', .ControlSource)
+	lnStart = .SelStart
+	if .lRefreshSteps and lnPos > 0 and not .Value == evaluate(.ControlSource)
+		lcAlias = left(.ControlSource, lnPos - 1)
+		lcField = substr(.ControlSource, lnPos + 1)
+		if used(lcAlias)
+			replace (lcField) with .Value in (lcAlias)
+		else
+			store .Value to (.ControlSource)
+		endif used(lcAlias)
+	endif .lRefreshSteps ...
+endwith
+if pemstatus(Thisform, 'RefreshSteps', 5)
+	Thisform.RefreshSteps()
+else
+	Thisform.RefreshForm()
+endif pemstatus(Thisform, 'RefreshSteps', 5)
+This.SelStart = lnStart
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refreshes the wizard form
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+lrefreshstepsonchange .T. to refresh the Wizard steps when the value is changed
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard EditBox objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardeditbox
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKS9C
+[CLASS] baseform
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] form
+[OBJNAME] basewizardform
+[START PROPERTIES]
+
+</VFPData>
+<memberdata name="asteps" type="property" display="aSteps"/>
+<memberdata name="cancel" type="method" display="Cancel"/>
+<memberdata name="ccurrhelp" type="property" display="cCurrHelp"/>
+<memberdata name="ccurrhelpfile" type="property" display="cCurrHelpFile"/>
+<memberdata name="chelpfile" type="property" display="cHelpFile" favorites="True"/>
+<memberdata name="cregistrykey" type="property" display="cRegistryKey"/>
+<memberdata name="finish" type="method" display="Finish" favorites="True"/>
+<memberdata name="isstepenabled" type="method" display="IsStepEnabled"/>
+<memberdata name="lcancel" type="property" display="lCancel"/>
+<memberdata name="lfinish" type="property" display="lFinish"/>
+<memberdata name="loadstepscombo" type="method" display="LoadStepsCombo"/>
+<memberdata name="ncurrentstep" type="property" display="nCurrentStep"/>
+<memberdata name="nformerstep" type="property" display="nFormerStep"/>
+<memberdata name="nmaxsteps" type="property" display="nMaxSteps" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+<memberdata name="restorehelp" type="method" display="RestoreHelp"/>
+<memberdata name="save" type="method" display="Save"/>
+<memberdata name="selectstep" type="method" display="SelectStep"/>
+<memberdata name="sethelp" type="method" display="SetHelp"/>
+<memberdata name="setupsteps" type="method" display="SetupSteps" favorites="True"/>
+<memberdata name="stepdone" type="method" display="StepDone" favorites="True"/>
+<memberdata name="stepselected" type="method" display="StepSelected"/>
+<memberdata name="validatecurrentcontrol" type="method" display="ValidateCurrentControl"/>
+BufferMode = 2
+Caption = "Wizard"
+Closable = .F.
+DataSession = 2
+DoCreate = .T.
+Height = 364
+Name = "basewizardform"
+Width = 536
+_memberdata =     1667<VFPData>
+ccurrhelp = 
+ccurrhelpfile = 
+chelpfile = 
+cregistrykey = 
+lcancel = .F.
+lfinish = .F.
+ncurrentstep = 0
+nformerstep = 0
+nmaxsteps = 0
+[END PROPERTIES]
+[START PROTECTED]
+ccurrhelp
+ccurrhelpfile
+[END PROTECTED]
+[START METHODS]
+PROCEDURE Activate
+* If we're not being released, select the first step when the form is first
+* displayed. Then refresh the steps.
+
+with This
+	if not .lRelease
+		if .nCurrentStep = 0
+			.SelectStep(1)
+		endif .nCurrentStep = 0
+		.RefreshSteps()
+		dodefault()
+	endif not .lRelease
+endwith
+
+ENDPROC
+PROCEDURE Destroy
+with This
+
+* Revert any unsaved records.
+
+	if not .lCancel
+		.Cancel()
+	endif not .lCancel
+
+* Restore the saved help setting and file.
+
+	.RestoreHelp()
+endwith
+dodefault()
+
+ENDPROC
+PROCEDURE GotFocus
+* Only do the default behavior if this isn't the first time called.
+
+if This.nFormerStep > 0
+	dodefault()
+endif This.nFormerStep > 0
+
+ENDPROC
+PROCEDURE Init
+local lnI
+dodefault()
+with This
+
+* Ensure the developer set the nMaxSteps property and added as many pages to
+* the pageframe as we have steps.
+
+	assert .nMaxSteps > 0 ;
+		message 'Set nMaxSteps to a valid value'
+	assert .pgfWizard.PageCount = .nMaxSteps ;
+		message "nMaxSteps doesn't match pgfWizard.PageCount"
+
+* Dimension the aSteps array, then populate it with the steps for this wizard.
+
+	dimension .aSteps[.nMaxSteps, 5]
+	.aSteps = ''
+	for lnI = 1 to .nMaxSteps
+		.aSteps[lnI, 2] = '.T.'
+		.aSteps[lnI, 3] = .F.
+		.aSteps[lnI, 4] = .T.
+		.aSteps[lnI, 5] = 0
+	next lnI
+	.SetupSteps()
+endwith
+
+ENDPROC
+PROCEDURE KeyPress
+lparameters tnKeyCode, ;
+	tnShiftAltCtrl
+do case
+
+* Page up.
+
+	case tnKeyCode = 18 and This.nCurrentStep > 1
+		if This.ValidateCurrentControl()
+			This.cmdBack.Click()
+		endif This.ValidateCurrentControl()
+
+* Page down.
+
+	case tnKeyCode = 3 and This.nCurrentStep < This.nMaxSteps
+		if This.ValidateCurrentControl()
+			This.cmdNext.Click()
+		endif This.ValidateCurrentControl()
+
+* Any other key.
+
+	otherwise
+		dodefault(tnKeyCode, tnShiftAltCtrl)
+endcase
+
+ENDPROC
+PROCEDURE Load
+* Dimension the aSteps array.
+
+dodefault()
+dimension This.aSteps[1, 4]
+
+ENDPROC
+PROCEDURE QueryUnload
+* If the user clicked on the Close box, let's cancel the wizard.
+
+This.Cancel()
+
+ENDPROC
+PROCEDURE Show
+lparameters tnStyle
+with This
+
+* Set up the help file.
+
+	.SetHelp()
+
+* Make the form the same width as the pageframe (in the designer, the form is
+* sized larger than the pageframe to make it easier to select the form itself).
+
+	.MinWidth = min(.MinWidth, .pgfWizard.Width)
+	.Width    = .pgfWizard.Width
+
+* Manually call Resize because that method doesn't fire until the form is
+* visible and we may have some controls (such as a status bar) bound to it.
+
+	.Resize()
+endwith
+dodefault(tnStyle)
+
+ENDPROC
+PROCEDURE cancel
+* Rollback all changes.
+
+local laCursors[1], ;
+	lnI, ;
+	lcCursor
+for lnI = 1 to aused(laCursors)
+	lcCursor = laCursors[lnI, 1]
+	if cursorgetprop('Buffering', lcCursor) > 1
+		tablerevert(.T., lcCursor)
+	endif cursorgetprop('Buffering', lcCursor) > 1
+next lnI
+This.lCancel = .T.
+
+ENDPROC
+PROCEDURE finish
+* Do something, then release the form.
+
+This.Release()
+
+ENDPROC
+PROCEDURE isstepenabled
+lparameters tnStep
+local luEnabled, ;
+	llReturn
+with This
+	luEnabled = .aSteps[tnStep, 4]
+	llReturn  = iif(vartype(luEnabled) = 'C', evaluate(luEnabled), luEnabled)
+endwith
+return llReturn
+
+ENDPROC
+PROCEDURE loadstepscombo
+* Load the steps combobox with only those steps that are enabled.
+
+local lnStep, ;
+	lcRowSource, ;
+	lnItem, ;
+	lnI
+with This.cboSteps
+	lnStep      = .Value
+	lcRowSource = ''
+	lnItem      = 0
+	for lnI = 1 to This.nMaxSteps
+		if This.IsStepEnabled(lnI)
+			lnItem      = lnItem + 1
+			lcRowSource = lcRowSource + iif(lnItem = 1, '', ',') + ;
+				This.aSteps[lnI, 1]
+			dimension .aItems[lnItem]
+			.aItems[lnItem] = lnI
+		endif This.IsStepEnabled(lnI)
+	next lnI
+	.RowSource = lcRowSource
+	.Requery()
+	.Value = lnStep
+endwith
+
+ENDPROC
+PROCEDURE refreshsteps
+local llOK, ;
+	lnSteps, ;
+	lnI, ;
+	lcPrompt, ;
+	lcRule, ;
+	lnPage, ;
+	loControl
+with This
+
+* Lock the screen.
+
+	.LockScreen = .T.
+
+* Set the "step complete" flags in the aSteps array.
+
+	if not empty(.aSteps[1, 1])
+		llOK    = .T.
+		lnSteps = alen(.aSteps, 1) + 1
+		for lnI = 2 to lnSteps
+			lcPrompt = iif(lnI = lnSteps, '', .aSteps[lnI, 1])
+			lcRule   = .aSteps[lnI - 1, 2]
+			lnPage   = .pgfWizard.GetPageNumber(lnI - 1)
+			with .pgfWizard.Pages[lnPage]
+				llOK = llOK and evaluate(lcRule)
+			endwith
+			.aSteps[lnI - 1, 3] = llOK
+			do case
+				case lnI = lnSteps
+				case left(lcPrompt, 1) = '\' and llOK
+					.aSteps[lnI, 1] = substr(lcPrompt, 2)
+				case left(lcPrompt, 1) <> '\' and not llOK
+					.aSteps[lnI, 1] = '\' + lcPrompt
+			endcase
+		next lnI
+
+* Refresh all controls that need refreshing.
+
+		for each loControl in .Controls
+			do case
+				case lower(loControl.Class) = 'basewizardpageframe'
+					loControl.RefreshSteps()
+				case type('loControl.lRefreshSteps') = 'L' and ;
+					loControl.lRefreshSteps
+					loControl.Refresh()
+				case pemstatus(loControl, 'Refresh', 5)
+					loControl.Refresh()
+			endcase
+		next loControl
+
+* Reload the steps combo.
+
+		.LoadStepsCombo()
+	endif not empty(.aSteps[1, 1])
+
+* Unlock the screen.
+
+	.LockScreen = .F.
+endwith
+
+ENDPROC
+PROCEDURE restorehelp
+* Restore the saved help setting and file.
+
+with This
+	if not empty(.cCurrHelpFile) and file(.cCurrHelpFile)
+		set help to (.cCurrHelpFile)
+		if .cCurrHelp = 'OFF'
+			set help off
+		else
+			set help on
+		endif .cCurrHelp = 'OFF'
+	endif not empty(.cCurrHelpFile) ...
+endwith
+
+ENDPROC
+PROCEDURE save
+* Saves in all open work areas.
+
+local llSuccess, ;
+	lnI, ;
+	laCursors[1], ;
+	lcCursor
+llSuccess = .T.
+begin transaction
+for lnI = 1 to aused(laCursors)
+	lcCursor = laCursors[lnI, 1]
+	if cursorgetprop('Buffering', lcCursor) > 1
+		llSuccess = tableupdate(2, .F., lcCursor)
+	endif cursorgetprop('Buffering', lcCursor) > 1
+	if not llSuccess
+		exit
+	endif not llSuccess
+next lnI
+if llSuccess
+	end transaction
+else
+	rollback
+endif llSuccess
+return llSuccess
+
+ENDPROC
+PROCEDURE selectstep
+* Select a particular step.
+
+lparameters tnStep
+local llReturn, ;
+	lnStep
+with This
+
+* Ensure tnStep is a valid value.
+
+	assert between(tnStep, 1, .nMaxSteps) ;
+		message 'Invalid step passed to SelectStep'
+
+* If we're moving to a previous step or the desired step is accessible, see if
+* we can finish the current step (StepDone is an abstract method; the developer
+* will put in custom code that returns .T. to allow leaving the step or .F. to
+* prevent it). Move to the next enabled step, skipping any that are disabled.
+* If everything is OK, move to the desired step and fire an abstract
+* StepSelected method, where the user can put custom code.
+
+	if (tnStep < .nCurrentStep or .nCurrentStep = 0 or ;
+		(tnStep > 1 and .aSteps[tnStep - 1, 3])) and .StepDone(.nCurrentStep)
+		.nFormerStep = .nCurrentStep
+		do case
+			case .IsStepEnabled(tnStep)
+				.nCurrentStep = tnStep
+				llReturn = .T.
+			case tnStep > .nFormerStep
+				lnStep = tnStep + 1
+				do while not .IsStepEnabled(lnStep) and lnStep < .nMaxSteps
+					lnStep = lnStep + 1
+				enddo while not .IsStepEnabled(lnStep) ...
+				llReturn = .IsStepEnabled(lnStep)
+				if llReturn
+					.nCurrentStep = lnStep 
+				endif llReturn
+			otherwise
+				lnStep = tnStep - 1
+				do while not .IsStepEnabled(lnStep) and lnStep > 1
+					lnStep = lnStep - 1
+				enddo while not .IsStepEnabled(lnStep) ...
+				llReturn = .IsStepEnabled(lnStep)
+				if llReturn
+					.nCurrentStep = lnStep 
+				endif llReturn
+		endcase
+		if llReturn and .nFormerStep <> 0
+			.StepSelected(.nCurrentStep)
+			.RefreshForm()
+		endif llReturn ...
+	else
+		llReturn = .F.
+	endif tnStep <= .nCurrentStep ...
+endwith
+return llReturn
+
+ENDPROC
+PROCEDURE sethelp
+* If a help file is specified, save the current one and use the specified one.
+
+with This
+	if not empty(.cHelpFile) and file(.cHelpFile)
+		.cCurrHelp     = set('HELP')
+		.cCurrHelpFile = set('HELP', 1)
+		set help to (.cHelpFile)
+		set help on
+	endif not empty(.cHelpFile) ...
+endwith
+
+ENDPROC
+PROCEDURE stepdone
+* Developer can hook when steps are completed.
+
+lparameters tnStep
+
+ENDPROC
+PROCEDURE stepselected
+* Developer can hook when steps are selected.
+
+lparameters tnStep
+
+ENDPROC
+PROCEDURE validatecurrentcontrol
+local llValid, ;
+	luValid, ;
+	loObject
+llValid = .T.
+if type('This.ActiveControl.Name') = 'C'
+	loObject = This.ActiveControl
+	if pemstatus(loObject, 'Valid', 5)
+		luValid = loObject.Valid()
+		llValid = vartype(luValid) = 'L' and luValid
+	endif pemstatus(loObject, 'Valid', 5)
+	if llValid
+		loObject.LostFocus()
+	endif llValid
+endif type('This.ActiveControl.Name') = 'C' ...
+return llValid
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+9[END RESERVED2]
+[START RESERVED3]
+*cancel Reverts in all open work areas
+*finish An abstract method to do the "finish" tasks
+*isstepenabled Determines if a step is enabled
+*loadstepscombo Loads the Steps combobox
+*refreshsteps Set the "step complete" flags in the aSteps array
+*restorehelp Restores the save help setting and file
+*save Saves in all open work areas
+*selectstep Select a particular step
+*sethelp Sets up the help system
+*setupsteps Abstract method to initialize the aSteps array
+*stepdone Abstract method called when a step is complete
+*stepselected Abstract method called when a step is selected
+*validatecurrentcontrol Ensures the current control's value is valid
+^asteps[1,0] An array of steps; see About for documentation
+ccurrhelp The saved HELP setting
+ccurrhelpfile The saved HELP file
+chelpfile The name of the help file for this wizard
+cregistrykey The Registry key where settings should saved
+lcancel .T. if Cancel was chosen
+lfinish .T. if Finish was chosen
+ncurrentstep The current step
+nformerstep The formerly selected step
+nmaxsteps The number of steps in the wizard
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard forms[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKSAO
+[CLASS] basecombobox
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] combobox
+[OBJNAME] cboSteps
+[PARENT] basewizardform
+[START PROPERTIES]
+BoundTo = .F.
+Left = 205
+Name = "cboSteps"
+RowSource = ""
+RowSourceType = 1
+TabIndex = 2
+Top = 20
+Value = 0
+Width = 304
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE InteractiveChange
+* Select the chosen step if it's accessible.
+
+local lnStep
+with This
+	lnStep = .aItems[.Value]
+	if left(Thisform.aSteps[lnStep, 1], 1) = '\'
+		.Refresh()
+	else
+		Thisform.SelectStep(lnStep)
+	endif left(Thisform.aSteps[lnStep, 1], 1) = '\'
+endwith
+
+ENDPROC
+PROCEDURE Refresh
+* Display the current step.
+
+local lnStep, ;
+	lnI
+with This
+	lnStep = max(Thisform.nCurrentStep, 1)
+	for lnI = 1 to .ListCount
+		if .aItems[lnI] = lnStep
+			.Value = lnI
+		endif .aItems[lnI] = lnStep
+	next lnI
+endwith
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKSA5
+[CLASS] basewizardcommandbutton
+[CLASSLOC] basewizard.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdBack
+[PARENT] basewizardform
+[START PROPERTIES]
+Caption = "< Back"
+Left = 225
+Name = "cmdBack"
+TabIndex = 5
+Top = 325
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+* Move to the previous step.
+
+Thisform.SelectStep(Thisform.nCurrentStep - 1)
+
+ENDPROC
+PROCEDURE Init
+if type('oLocalizer.Name') = 'C'
+	This.Caption = oLocalizer.GetLocalizedString('CMD_CAP_BACK')
+endif type('oLocalizer.Name') = 'C'
+dodefault()
+
+ENDPROC
+PROCEDURE Refresh
+* Enable this button if we're not on step 1 and we have any enabled steps to go
+* to.
+
+local lnI, ;
+	llNextPage
+with Thisform
+	for lnI = 1 to .nCurrentStep - 1
+		llNextPage = .IsStepEnabled(lnI)
+		if llNextPage
+			exit
+		endif llNextPage
+	next lnI
+	This.Enabled = .nCurrentStep > 1 and llNextPage
+	This.Visible = .nCurrentStep > 1
+endwith
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKSA0
+[CLASS] basewizardcommandbutton
+[CLASSLOC] basewizard.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdCancel
+[PARENT] basewizardform
+[START PROPERTIES]
+Cancel = .T.
+Caption = "Cancel"
+Left = 100
+Name = "cmdCancel"
+TabIndex = 4
+Top = 325
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+* Cancel all changes, then release the form.
+
+with Thisform
+	.Cancel()
+	.Release()
+endwith
+
+ENDPROC
+PROCEDURE Init
+if type('oLocalizer.Name') = 'C'
+	This.Caption = oLocalizer.GetLocalizedString('UI_CMD_CANCEL_LOC')
+endif type('oLocalizer.Name') = 'C'
+dodefault()
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKSAI
+[CLASS] basewizardcommandbutton
+[CLASSLOC] basewizard.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdFinish
+[PARENT] basewizardform
+[START PROPERTIES]
+Caption = "Finish"
+Left = 425
+Name = "cmdFinish"
+TabIndex = 7
+Top = 325
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+* Call the Finish() method to finish the wizard's job and set a flag that we
+* did.
+
+with Thisform
+	if .nCurrentStep <> .nMaxSteps
+		.SelectStep(.nMaxSteps)
+	endif .nCurrentStep <> .nMaxSteps
+	.lFinish = .Finish()
+endwith
+
+ENDPROC
+PROCEDURE Init
+if type('oLocalizer.Name') = 'C'
+	This.Caption = oLocalizer.GetLocalizedString('CMD_CAP_FINISH')
+endif type('oLocalizer.Name') = 'C'
+dodefault()
+
+ENDPROC
+PROCEDURE Refresh
+* Enable this button if the last step is complete.
+
+This.Enabled = Thisform.aSteps[Thisform.nMaxSteps, 3]
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKS9V
+[CLASS] basewizardcommandbutton
+[CLASSLOC] basewizard.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdHelp
+[PARENT] basewizardform
+[START PROPERTIES]
+Caption = "Help"
+Left = 10
+Name = "cmdHelp"
+TabIndex = 3
+Top = 325
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+* Fire off the help for the selected step or for the entire wizard.
+
+local lnTopic
+lnTopic = 0
+with Thisform
+	do case
+		case .aSteps[.nCurrentStep, 5] <> 0
+			lnTopic = .aSteps[.nCurrentStep, 5]
+		case .HelpContextID <> 0
+			lnTopic = .HelpContextID
+	endcase
+	if lnTopic <> 0
+		help id lnTopic
+	else
+		help
+	endif lnTopic <> 0
+endwith
+
+ENDPROC
+PROCEDURE Init
+if type('oLocalizer.Name') = 'C'
+	This.Caption = oLocalizer.GetLocalizedString('MENU_HELP')
+endif type('oLocalizer.Name') = 'C'
+dodefault()
+
+ENDPROC
+PROCEDURE Refresh
+* This button is only visible if it's supposed to be.
+
+This.Visible = not empty(Thisform.cHelpFile) or not empty(set('HELP', 1))
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKSAB
+[CLASS] basewizardcommandbutton
+[CLASSLOC] basewizard.vcx
+[BASECLASS] commandbutton
+[OBJNAME] cmdNext
+[PARENT] basewizardform
+[START PROPERTIES]
+Caption = "Next >"
+Left = 315
+Name = "cmdNext"
+TabIndex = 6
+Top = 325
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Click
+* Move to the previous step.
+
+Thisform.SelectStep(Thisform.nCurrentStep + 1)
+
+ENDPROC
+PROCEDURE Init
+if type('oLocalizer.Name') = 'C'
+	This.Caption = oLocalizer.GetLocalizedString('CMD_CAP_NEXT')
+endif type('oLocalizer.Name') = 'C'
+dodefault()
+
+ENDPROC
+PROCEDURE Refresh
+* Enable this button if the current step is done and we're not on the last
+* step and we have any enabled steps to go to.
+
+local lnI, ;
+	llNextPage
+with Thisform
+	if .nCurrentStep > 0
+		for lnI = .nCurrentStep + 1 to .nMaxSteps
+			llNextPage = .IsStepEnabled(lnI)
+			if llNextPage
+				exit
+			endif llNextPage
+		next lnI
+		This.Enabled = .aSteps[.nCurrentStep, 3] and llNextPage and ;
+			.nCurrentStep < .nMaxSteps
+		This.Visible = .nCurrentStep < .nMaxSteps
+	endif .nCurrentStep > 0
+endwith
+
+ENDPROC
+[END METHODS]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKS9N
+[CLASS] basewizardpageframe
+[CLASSLOC] basewizard.vcx
+[BASECLASS] pageframe
+[OBJNAME] pgfWizard
+[PARENT] basewizardform
+[START PROPERTIES]
+BASEPAGE1.Name = "BASEPAGE1"
+ErasePage = .T.
+Height = 364
+Name = "pgfWizard"
+TabIndex = 1
+Top = 0
+Width = 519
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RP70RKSAW
+[CLASS] basewizardshape
+[CLASSLOC] basewizard.vcx
+[BASECLASS] shape
+[OBJNAME] shpSeparator
+[PARENT] basewizardform
+[START PROPERTIES]
+Height = 2
+Left = 10
+Name = "shpSeparator"
+SpecialEffect = 0
+Top = 310
+Width = 499
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardform
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _08X102T0E
+[CLASS] baseimage
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] image
+[OBJNAME] basewizardimage
+[START PROPERTIES]
+Name = "sfwizardimage"
+lrefreshsteps = .F.
+[END PROPERTIES]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refresh Repaints a Form or control and refreshes any values.
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardimage
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RCS0T3PHQ
+[CLASS] baselabel
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] label
+[OBJNAME] basewizardlabel
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+Name = "sfwizardlabel"
+_memberdata =      112<VFPData>
+lrefreshsteps = .F.
+[END PROPERTIES]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+The base class for Wizard Label objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardlabel
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RXT0XKJF8
+[CLASS] baselistbox
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] listbox
+[OBJNAME] basewizardlistbox
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+<memberdata name="lrefreshstepsonchange" type="property" display="lRefreshStepsOnChange" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+Name = "sfwizardlistbox"
+_memberdata =      291<VFPData>
+lrefreshsteps = .T.
+lrefreshstepsonchange = .T.
+[END PROPERTIES]
+[START PROTECTED]
+refreshsteps
+[END PROTECTED]
+[START METHODS]
+PROCEDURE InteractiveChange
+dodefault()
+with This
+	if .lRefreshStepsOnChange
+		.RefreshSteps()
+	endif .lRefreshStepsOnChange
+endwith
+
+ENDPROC
+PROCEDURE LostFocus
+* Call This.RefreshSteps if we didn't already.
+
+if not This.lRefreshStepsOnChange
+	This.RefreshSteps()
+endif not This.lRefreshStepsOnChange
+
+ENDPROC
+PROCEDURE ProgrammaticChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE refreshsteps
+local lnPos, ;
+	lcAlias, ;
+	lcField
+with This
+	lnPos = at('.', .ControlSource)
+	if .lRefreshSteps and lnPos > 0 and not .Value == evaluate(.ControlSource)
+		lcAlias = left(.ControlSource, lnPos - 1)
+		lcField = substr(.ControlSource, lnPos + 1)
+		if used(lcAlias)
+			replace (lcField) with .Value in (lcAlias)
+		else
+			store .Value to (.ControlSource)
+		endif used(lcAlias)
+	endif .lRefreshSteps ...
+endwith
+if pemstatus(Thisform, 'RefreshSteps', 5)
+	Thisform.RefreshSteps()
+else
+	Thisform.RefreshForm()
+endif pemstatus(Thisform, 'RefreshSteps', 5)
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refreshes the wizard form
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+lrefreshstepsonchange .T. to refresh the Wizard steps when the value is changed
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard ListBox objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardlistbox
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RRU15YS6Q
+[CLASS] baseoptiongroup
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] optiongroup
+[OBJNAME] basewizardoptiongroup
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+BASEOPTIONBUTTON1.Name = "BASEOPTIONBUTTON1"
+BASEOPTIONBUTTON2.Name = "BASEOPTIONBUTTON2"
+Name = "sfwizardoptiongroup"
+_memberdata =      183<VFPData>
+lrefreshsteps = .T.
+[END PROPERTIES]
+[START PROTECTED]
+refreshsteps
+[END PROTECTED]
+[START METHODS]
+PROCEDURE InteractiveChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE ProgrammaticChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE refreshsteps
+local lnPos, ;
+	lcAlias, ;
+	lcField
+with This
+	lnPos = at('.', .ControlSource)
+	if .lRefreshSteps and lnPos > 0 and not .Value == evaluate(.ControlSource)
+		lcAlias = left(.ControlSource, lnPos - 1)
+		lcField = substr(.ControlSource, lnPos + 1)
+		if used(lcAlias)
+			replace (lcField) with .Value in (lcAlias)
+		else
+			store .Value to (.ControlSource)
+		endif used(lcAlias)
+	endif .lRefreshSteps ...
+endwith
+if pemstatus(Thisform, 'RefreshSteps', 5)
+	Thisform.RefreshSteps()
+else
+	Thisform.RefreshForm()
+endif pemstatus(Thisform, 'RefreshSteps', 5)
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refreshes the wizard form
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+Base class for Wizard OptionGroup objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardoptiongroup
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RCS0X9KUK
+[CLASS] basepageframe
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] pageframe
+[OBJNAME] basewizardpageframe
+[START PROPERTIES]
+</VFPData>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+BASEPAGE1.Name = "BASEPAGE1"
+BorderWidth = 0
+ErasePage = .T.
+Height = 254
+Name = "sfwizardpageframe"
+Tabs = .F.
+Top = 0
+_memberdata =       91<VFPData>
+[END PROPERTIES]
+[START METHODS]
+PROCEDURE Refresh
+* Set the current page to the step we're on.
+
+if This.ActivePage <> Thisform.nCurrentStep
+	This.ActivePage = Thisform.nCurrentStep
+endif This.ActivePage <> Thisform.nCurrentStep
+
+ENDPROC
+PROCEDURE refreshsteps
+* Refresh all controls on the current page that need refreshing.
+
+local loControl
+with This
+	if .ActivePage > 0
+		for each loControl in .Pages[.GetPageNumber(.ActivePage)].Controls
+			if (type('loControl.lRefreshSteps') = 'L' and ;
+				loControl.lRefreshSteps) or pemstatus(loControl, 'Refresh', 5)
+				loControl.Refresh()
+			endif (type('loControl.lRefreshSteps') = 'L' ...
+		next loControl
+	endif .ActivePage > 0
+endwith
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refresh all controls that need refreshing
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+The base class for Wizard PageFrame objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardpageframe
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _08X10SWWA
+[CLASS] baseshape
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] shape
+[OBJNAME] basewizardshape
+[START PROPERTIES]
+Name = "sfwizardshape"
+lrefreshsteps = .F.
+[END PROPERTIES]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardshape
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RCY0ZANFW
+[CLASS] basespinner
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] spinner
+[OBJNAME] basewizardspinner
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+<memberdata name="lrefreshstepsonchange" type="property" display="lRefreshStepsOnChange" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+Name = "sfwizardspinner"
+_memberdata =      291<VFPData>
+lrefreshsteps = .T.
+lrefreshstepsonchange = .T.
+[END PROPERTIES]
+[START PROTECTED]
+refreshsteps
+[END PROTECTED]
+[START METHODS]
+PROCEDURE InteractiveChange
+dodefault()
+with This
+	if .lRefreshStepsOnChange
+		.RefreshSteps()
+	endif .lRefreshStepsOnChange
+endwith
+
+ENDPROC
+PROCEDURE LostFocus
+* Call This.RefreshSteps if we didn't already.
+
+if not This.lRefreshStepsOnChange
+	This.RefreshSteps()
+endif not This.lRefreshStepsOnChange
+
+ENDPROC
+PROCEDURE ProgrammaticChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE refreshsteps
+local lnPos, ;
+	lnStart, ;
+	lcAlias, ;
+	lcField
+with This
+	lnPos   = at('.', .ControlSource)
+	lnStart = .SelStart
+	if .lRefreshSteps and lnPos > 0 and not .Value == evaluate(.ControlSource)
+		lcAlias = left(.ControlSource, lnPos - 1)
+		lcField = substr(.ControlSource, lnPos + 1)
+		if used(lcAlias)
+			replace (lcField) with .Value in (lcAlias)
+		else
+			store .Value to (.ControlSource)
+		endif used(lcAlias)
+	endif .lRefreshSteps ...
+endwith
+if pemstatus(Thisform, 'RefreshSteps', 5)
+	Thisform.RefreshSteps()
+else
+	Thisform.RefreshForm()
+endif pemstatus(Thisform, 'RefreshSteps', 5)
+This.SelStart = lnStart
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refreshes the wizard form
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+lrefreshstepsonchange .T. to refresh the Wizard steps when the value is changed
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+The base class for Wizard Spinner objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardspinner
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+
+[ RECORD]
+[PLATFORM] WINDOWS 
+[UNIQUEID] _RCS0T4KK1
+[CLASS] basetextbox
+[CLASSLOC] basecontrols.vcx
+[BASECLASS] textbox
+[OBJNAME] basewizardtextbox
+[START PROPERTIES]
+</VFPData>
+<memberdata name="lrefreshsteps" type="property" display="lRefreshSteps" favorites="True"/>
+<memberdata name="lrefreshstepsonchange" type="property" display="lRefreshStepsOnChange" favorites="True"/>
+<memberdata name="refreshsteps" type="method" display="RefreshSteps"/>
+Name = "sfwizardtextbox"
+_memberdata =      291<VFPData>
+lrefreshsteps = .T.
+lrefreshstepsonchange = .T.
+[END PROPERTIES]
+[START PROTECTED]
+refreshsteps
+[END PROTECTED]
+[START METHODS]
+PROCEDURE InteractiveChange
+dodefault()
+with This
+	if .lRefreshStepsOnChange
+		.RefreshSteps()
+	endif .lRefreshStepsOnChange
+endwith
+
+ENDPROC
+PROCEDURE LostFocus
+* Call This.RefreshSteps if we didn't already.
+
+if not This.lRefreshStepsOnChange
+	This.RefreshSteps()
+endif not This.lRefreshStepsOnChange
+
+ENDPROC
+PROCEDURE ProgrammaticChange
+dodefault()
+This.RefreshSteps()
+
+ENDPROC
+PROCEDURE refreshsteps
+local lnPos, ;
+	lnStart, ;
+	lcAlias, ;
+	lcField
+with This
+	lnPos   = at('.', .ControlSource)
+	lnStart = .SelStart
+	if .lRefreshSteps and lnPos > 0 and not .Value == evaluate(.ControlSource)
+		lcAlias = left(.ControlSource, lnPos - 1)
+		lcField = substr(.ControlSource, lnPos + 1)
+		if used(lcAlias)
+			replace (lcField) with .Value in (lcAlias)
+		else
+			store .Value to (.ControlSource)
+		endif used(lcAlias)
+	endif .lRefreshSteps ...
+endwith
+if pemstatus(Thisform, 'RefreshSteps', 5)
+	Thisform.RefreshSteps()
+else
+	Thisform.RefreshForm()
+endif pemstatus(Thisform, 'RefreshSteps', 5)
+This.SelStart = lnStart
+
+ENDPROC
+[END METHODS]
+[START RESERVED1]
+Class[END RESERVED1]
+[START RESERVED2]
+1[END RESERVED2]
+[START RESERVED3]
+*refreshsteps Refreshes the wizard form
+lrefreshsteps .T. if this object should be refreshed when the WizardForm RefreshSteps method is called
+lrefreshstepsonchange .T. to refresh the Wizard steps when the value is changed
+[END RESERVED3]
+[START RESERVED6]
+Pixels[END RESERVED6]
+[START RESERVED7]
+The base class for Wizard TextBox objects[END RESERVED7]
+
+[ RECORD]
+[PLATFORM] COMMENT 
+[UNIQUEID] RESERVED  
+[OBJNAME] basewizardtextbox
+[START PROPERTIES]
+Tahoma, 0, 8, 5, 13, 11, 21, 2, 0
+[END PROPERTIES]
+[EOF]
