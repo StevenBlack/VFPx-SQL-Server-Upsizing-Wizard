@@ -18,10 +18,8 @@
 * Use tilde rather than comma in case commas in char fields
 #DEFINE BULK_INSERT_FIELD_DELIMITER	~
 
-* { Add JEI -RKR - 2005.03.25
 #DEFINE gcQT  CHR( 34 )
 #DEFINE gc2QT  ['']
-* } Add JEI -RKR - 2005.03.25
 
 *******************************************
 DEFINE CLASS UpsizeEngine AS WizEngineAll of WZEngine.prg
@@ -59,7 +57,6 @@ DeviceLogChosen      = .F.
 DeviceDBChosen       = .F.
 SourceDBChosen       = .F.
 GridFilled           = .F.
-
 
 * Device properties
 DeviceNumbersFree = 0
@@ -5474,476 +5471,476 @@ FUNCTION ZeroDefault
 
 FUNCTION BuildRiCode
 
-	*
-	* Generates an ALTER TABLE statement for Oracle, code for trigger for SQL Server
-	* for all relations between tables that are being upsized
-	*
+*
+* Generates an ALTER TABLE statement for Oracle, code for trigger for SQL Server
+* for all relations between tables that are being upsized
+*
 
-	LOCAL lcEnumTables, lnOldArea, lcTableName, aFldNames, lcCRLF, ;
-		aNewForeign, aNewPrimary, llRetVal, lcErr, llSkipChildTbl, ;
-		lcEnumRelsTbl, lcEnum_Indexes, lcUpdateType, lcDeleteType, ;
-		lcInsertType, lnTableCount, lcThermMsg, lcXPkey, ;
-		lcParentLoc, lcChildLoc, lnError, lcErrMsg, lcOParen, lcCParen
+LOCAL lcEnumTables, lnOldArea, lcTableName, aFldNames, lcCRLF, ;
+	aNewForeign, aNewPrimary, llRetVal, lcErr, llSkipChildTbl, ;
+	lcEnumRelsTbl, lcEnum_Indexes, lcUpdateType, lcDeleteType, ;
+	lcInsertType, lnTableCount, lcThermMsg, lcXPkey, ;
+	lcParentLoc, lcChildLoc, lnError, lcErrMsg, lcOParen, lcCParen
 
 * If we have an extension object and it has a BuildRICode method, call it.
 * If it returns .F., that means don't continue with the usual processing.
 
-	IF vartype( this.oExtension ) = 'O' and ;
-		pemstatus( this.oExtension, 'BuildRICode', 5 ) and ;
-		not this.oExtension.BuildRICode( This )
-		return
+IF VARTYPE( THIS.oExtension ) = 'O' AND ;
+		PEMSTATUS( THIS.oExtension, 'BuildRICode', 5 ) AND ;
+		NOT THIS.oExtension.BuildRiCode( THIS )
+	RETURN
+ENDIF
+
+lcCRLF = CHR( 13 )
+lnOldArea = SELECT()
+lcEnumTables = THIS.EnumTablesTbl
+
+* Go grab all the relation information for tables in the source database
+THIS.GetRiInfo
+lcEnumRelsTbl = THIS.EnumRelsTbl
+lcEnum_Indexes = THIS.EnumIndexesTbl
+
+* We only want to deal with relations where both tables were successfully upsized or,
+* if we're generating a script, relations where both tables were selected to upsize
+SELECT ( lcEnumRelsTbl )
+SCAN
+	IF THIS.TableUpsized( RTRIM( &lcEnumRelsTbl..DD_PARENT )) ;
+			AND THIS.TableUpsized( RTRIM( &lcEnumRelsTbl..DD_CHILD )) THEN
+		REPLACE EXPORT WITH .T.
+	ELSE
+		REPLACE EXPORT WITH .F.
+	ENDIF
+ENDSCAN
+
+SELECT COUNT( * ) FROM ( lcEnumRelsTbl ) WHERE EXPORT=.T. INTO ARRAY aTableCount
+lnTableCount=0
+THIS.InitTherm( BUILDING_RI_LOC, aTableCount, 0 )
+
+SCAN FOR EXPORT = .T.
+	lcParent     = RTRIM( &lcEnumRelsTbl..Dd_RmtPar )
+	lcChild      = RTRIM( &lcEnumRelsTbl..Dd_RmtChi )
+	lcParentLoc  = RTRIM( &lcEnumRelsTbl..DD_PARENT )
+	lcChildLoc   = RTRIM( &lcEnumRelsTbl..DD_CHILD )
+	lcNewPrimary = RTRIM( &lcEnumRelsTbl..DD_PAREXPR )
+	lcNewForeign = RTRIM( &lcEnumRelsTbl..DD_CHIEXPR )
+	llClustIdxOK = .T.
+
+	* Therm stuff
+	lcThermMsg = STRTRAN( RI_THIS_LOC, '|1', lcParentLoc )
+	lcThermMsg = STRTRAN( lcThermMsg, '|2', lcChildLoc )
+	THIS.UpDateTherm( lnTableCount, lcThermMsg )
+	lnTableCount = lnTableCount+1
+
+	* Pick up what kind of relation type this is
+	lcUpdateType = &lcEnumRelsTbl..dd_update
+	lcDeleteType = &lcEnumRelsTbl..dd_delete
+	lcInsertType = &lcEnumRelsTbl..dd_insert
+
+	* For report
+	IF lcUpdateType = "I" AND lcDeleteType = "I" AND lcInsertType = "I" ;
+			AND EMPTY( &lcEnumRelsTbl..ClustName ) THEN
+		REPLACE &lcEnumRelsTbl..Exported WITH .F.
+	ELSE
+		REPLACE &lcEnumRelsTbl..Exported WITH .T.
 	ENDIF
 
-	lcCRLF = CHR( 13 )
-	lnOldArea = SELECT()
-	lcEnumTables = this.EnumTablesTbl
+	* Turn fields in keys into an array ( used later all over the place )
+	DIMENSION aNewForeign[1], aNewPrimary[1]
+	aNewForeign[1]=""
+	aNewPrimary[1]=""
+	THIS.KeyArray( lcNewForeign, @aNewForeign )
+	THIS.KeyArray( lcNewPrimary, @aNewPrimary )
 
-	* Go grab all the relation information for tables in the source database
-	this.GetRiInfo
-	lcEnumRelsTbl = this.EnumRelsTbl
-	lcEnum_Indexes = this.EnumIndexesTbl
+	* do simple comparison of keys in case they won't match up
+	IF ALEN( aNewForeign, 1 )<>ALEN( aNewPrimary, 1 ) THEN
+		* mark the relation as unupsizable and move to the next relation
+		THIS.StoreError( .NULL., "", "", KEYS_MISMATCH_LOC, lcParent+":"+lcChild, RI_LOC )
+		REPLACE RIError WITH KEYS_MISMATCH_LOC, Exported WITH .F.
+		LOOP
+	ENDIF
 
-	* We only want to deal with relations where both tables were successfully upsized or,
-	* if we're generating a script, relations where both tables were selected to upsize
-	SELECT ( lcEnumRelsTbl )
-	SCAN
-		IF this.TableUpsized( RTRIM( &lcEnumRelsTbl..DD_PARENT )) ;
-	AND this.TableUpsized( RTRIM( &lcEnumRelsTbl..DD_CHILD )) THEN
-			REPLACE EXPORT WITH .T.
-		ELSE
-			REPLACE EXPORT WITH .F.
-		ENDIF
-	ENDSCAN
+	* Make sure keyfields are less than 17
+	IF ALEN( aNewForeign, 1 )>MAX_INDEX_FIELDS THEN
+		* mark the relation as unupsizable and move to the next relation
+		REPLACE RIError WITH TOO_MANY_FIELDS_LOC, Exported WITH .F.
+		THIS.StoreError( .NULL., "", "", TOO_MANY_FIELDS_LOC, lcParent+":"+lcChild, RI_LOC )
+		LOOP
+	ENDIF
 
-	SELECT COUNT( * ) FROM ( lcEnumRelsTbl ) WHERE EXPORT=.T. INTO ARRAY aTableCount
-	lnTableCount=0
-	this.InitTherm( BUILDING_RI_LOC, aTableCount, 0 )
+	* Here's the RI plan:
+	* SQL Server: use triggers for everything
+	* Oracle: create two triggers that enforces RI via SQL *OR*
+	* use DRI ( which won't cascade updates )
+	* SQL '95: create triggers for everything *OR*
+	* use DRI ( which won't cascade updates or deletes )
+	* note: this code currently is not aware of SQL '95
 
-	SCAN FOR EXPORT = .T.
-		lcParent=RTRIM( &lcEnumRelsTbl..Dd_RmtPar )
-		lcChild=RTRIM( &lcEnumRelsTbl..Dd_RmtChi )
-		lcParentLoc=RTRIM( &lcEnumRelsTbl..DD_PARENT )
-		lcChildLoc=RTRIM( &lcEnumRelsTbl..DD_CHILD )
-		lcNewPrimary=RTRIM( &lcEnumRelsTbl..DD_PAREXPR )
-		lcNewForeign=RTRIM( &lcEnumRelsTbl..DD_CHIEXPR )
-		llClustIdxOK=.T.
+	*
+	* This block of code handles DRI for SQL '95 and Oracle
+	* For SQL '95 it implements Update-restrict and Delete-restrict
+	* For Oracle, it also implements Delete-cascades
+	*
 
-		* Therm stuff
-		lcThermMsg = STRTRAN( RI_THIS_LOC, '|1', lcParentLoc )
-		lcThermMsg = STRTRAN( lcThermMsg, '|2', lcChildLoc )
-		this.UpDateTherm( lnTableCount, lcThermMsg )
-		lnTableCount = lnTableCount+1
+	IF THIS.ExportDRI AND ;
+			( THIS.ServerType = "Oracle" OR THIS.ServerType = "SQL Server95" )
+		* Implement RI constraints at table level since foreign key may be compound
 
-		* Pick up what kind of relation type this is
-		lcUpdateType = &lcEnumRelsTbl..dd_update
-		lcDeleteType = &lcEnumRelsTbl..dd_delete
-		lcInsertType = &lcEnumRelsTbl..dd_insert
+		* Deal with parent table first ( or child constraints will fail )
 
-		* For report
-		IF lcUpdateType = "I" AND lcDeleteType = "I" AND lcInsertType = "I" ;
-	AND EMPTY( &lcEnumRelsTbl..ClustName ) THEN
-			REPLACE &lcEnumRelsTbl..Exported WITH .F.
-		ELSE
-			REPLACE &lcEnumRelsTbl..Exported WITH .T.
-		ENDIF
+		* See if the table already has a primary key that's correct for RI purposes
+		* ( i.e. the same as the one we'd create anyway )
 
-		* Turn fields in keys into an array ( used later all over the place )
-		DIMENSION aNewForeign[1], aNewPrimary[1]
-		aNewForeign[1]=""
-		aNewPrimary[1]=""
-		this.KeyArray( lcNewForeign, @aNewForeign )
-		this.KeyArray( lcNewPrimary, @aNewPrimary )
+		SELECT ( lcEnumTables )
+		LOCATE FOR RTRIM( TblName )==lcParent
 
-		* do simple comparison of keys in case they won't match up
-		IF ALEN( aNewForeign, 1 )<>ALEN( aNewPrimary, 1 ) THEN
-			* mark the relation as unupsizable and move to the next relation
-			this.StoreError( .NULL., "", "", KEYS_MISMATCH_LOC, lcParent+":"+lcChild, RI_LOC )
-			REPLACE RIError WITH KEYS_MISMATCH_LOC, Exported WITH .F.
-			LOOP
-		ENDIF
+		* Here are the cases handled below:
+		* has no primary key: add pkey, convert old non-pkey index to type pkey,
+		* mark as already created so it doesn't get recreated
+		* has primary key, it's right: create the pkey now and mark the index
+		* as created
+		* has primary key, it's wrong: log error
 
-		* Make sure keyfields are less than 17
-		IF ALEN( aNewForeign, 1 )>MAX_INDEX_FIELDS THEN
-			* mark the relation as unupsizable and move to the next relation
-			REPLACE RIError WITH TOO_MANY_FIELDS_LOC, Exported WITH .F.
-			this.StoreError( .NULL., "", "", TOO_MANY_FIELDS_LOC, lcParent+":"+lcChild, RI_LOC )
-			LOOP
-		ENDIF
+		lcXPkey=RTRIM( &lcEnumTables..PkeyExpr )
+		lcTagName=RTRIM( &lcEnumTables..PKTagName )
+		IF lcXPkey==lcNewPrimary OR EMPTY( lcXPkey )THEN
 
-		* Here's the RI plan:
-		* SQL Server: use triggers for everything
-		* Oracle: create two triggers that enforces RI via SQL *OR*
-		* use DRI ( which won't cascade updates )
-		* SQL '95: create triggers for everything *OR*
-		* use DRI ( which won't cascade updates or deletes )
-		* note: this code currently is not aware of SQL '95
+			IF lcTagName=="" THEN
+				lcConstraintName=CHRTRAN( lcNewPrimary, ", []", "" )
+				lcConstraintName=PRIMARY_KEY_PREFIX + LEFT( lcConstraintName, MAX_NAME_LENGTH-LEN( PRIMARY_KEY_PREFIX ))
+			ELSE
+				lcConstraintName=lcTagName
+			ENDIF
+			lcConstraintName=THIS.UniqueOraName( lcConstraintName )
 
-		*
-		* This block of code handles DRI for SQL '95 and Oracle
-		* For SQL '95 it implements Update-restrict and Delete-restrict
-		* For Oracle, it also implements Delete-cascades
-		*
+			IF THIS.ServerType="Oracle" THEN
+				lcOParen="( "
+				lcCParen=" )"
+			ELSE
+				lcOParen=""
+				lcCParen=""
+			ENDIF
 
-		IF this.ExportDRI AND ;
-	( this.ServerType = "Oracle" OR this.ServerType = "SQL Server95" )
-			* Implement RI constraints at table level since foreign key may be compound
+			* Add primary key constraint
+			lcSQL = "ALTER TABLE [" + lcParent + "]"
+			lcSQL = lcSQL + " ADD " + lcOParen + "CONSTRAINT "
+			lcSQL = lcSQL + "[" + lcConstraintName + "] PRIMARY KEY"
+			lcSQL = lcSQL + " ( " + lcNewPrimary + " )" + lcCParen
 
-			* Deal with parent table first ( or child constraints will fail )
+			* Execute the statement if appropriate
 
-			* See if the table already has a primary key that's correct for RI purposes
-			* ( i.e. the same as the one we'd create anyway )
+			IF THIS.DoUpsize THEN
+				llRetVal=THIS.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
+				IF !llRetVal THEN
+					THIS.StoreError( lnError, lcErrMsg, lcSQL, DRI_ERR_LOC, lcParent, RI_LOC )
+				ENDIF
+			ENDIF
 
+			SELECT ( lcEnum_Indexes )
+			LOCATE FOR UPPER( RTRIM( IndexName ))==UPPER( lcParentLoc ) ;
+				AND UPPER( RTRIM( RmtExpr ))==UPPER( lcNewPrimary )
+			IF EMPTY( lcXPkey ) THEN
+				* If the table had no true primary key, change the index acting
+				* as primary key to a real primary key ( even though we just created it )
+				* This is done just for the purposes of the report and the SQL script
+				REPLACE &lcEnum_Indexes..RmtType WITH "PRIMARY KEY", ;
+					&lcEnum_Indexes..Exported WITH llRetVal, ;
+					&lcEnum_Indexes..IndexSQL WITH lcSQL, ;
+					&lcEnum_Indexes..RmtName WITH lcConstraintName
+			ELSE
+				* Mark the index as already created
+				REPLACE &lcEnum_Indexes..Exported WITH llRetVal, ;
+					&lcEnum_Indexes..IndexSQL WITH lcSQL
+			ENDIF
 			SELECT ( lcEnumTables )
-			LOCATE FOR RTRIM( TblName )==lcParent
+			llSkipChildTbl=.F.
 
-			* Here are the cases handled below:
-			* has no primary key: add pkey, convert old non-pkey index to type pkey,
-			* mark as already created so it doesn't get recreated
-			* has primary key, it's right: create the pkey now and mark the index
-			* as created
-			* has primary key, it's wrong: log error
-
-			lcXPkey=RTRIM( &lcEnumTables..PkeyExpr )
-			lcTagName=RTRIM( &lcEnumTables..PKTagName )
-			IF lcXPkey==lcNewPrimary OR EMPTY( lcXPkey )THEN
-
-	IF lcTagName=="" THEN
-		lcConstraintName=CHRTRAN( lcNewPrimary, ", []", "" )
-		lcConstraintName=PRIMARY_KEY_PREFIX + LEFT( lcConstraintName, MAX_NAME_LENGTH-LEN( PRIMARY_KEY_PREFIX ))
-	ELSE
-		lcConstraintName=lcTagName
-	ENDIF
-	lcConstraintName=this.UniqueOraName( lcConstraintName )
-
-	IF this.ServerType="Oracle" THEN
-		lcOParen="( "
-		lcCParen=" )"
-	ELSE
-		lcOParen=""
-		lcCParen=""
-	ENDIF
-
-	* Add primary key constraint
-	lcSQL="ALTER TABLE [" + lcParent + "]"
-	lcSQL=lcSQL + " ADD " + lcOParen + "CONSTRAINT "
-	lcSQL=lcSQL + "[" + lcConstraintName + "] PRIMARY KEY"
-	lcSQL=lcSQL + " ( " + lcNewPrimary + " )" + lcCParen
-
-	* Execute the statement if appropriate
-
-	IF this.DoUpsize THEN
-		llRetVal=this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
-		IF !llRetVal THEN
-			this.StoreError( lnError, lcErrMsg, lcSQL, DRI_ERR_LOC, lcParent, RI_LOC )
-		ENDIF
-	ENDIF
-
-	SELECT ( lcEnum_Indexes )
-	LOCATE FOR UPPER( RTRIM( IndexName ))==UPPER( lcParentLoc ) ;
-		AND UPPER( RTRIM( RmtExpr ))==UPPER( lcNewPrimary )
-	IF EMPTY( lcXPkey ) THEN
-		* If the table had no true primary key, change the index acting
-		* as primary key to a real primary key ( even though we just created it )
-		* This is done just for the purposes of the report and the SQL script
-		REPLACE &lcEnum_Indexes..RmtType WITH "PRIMARY KEY", ;
-			&lcEnum_Indexes..Exported WITH llRetVal, ;
-			&lcEnum_Indexes..IndexSQL WITH lcSQL, ;
-			&lcEnum_Indexes..RmtName WITH lcConstraintName
-	ELSE
-		* Mark the index as already created
-		REPLACE &lcEnum_Indexes..Exported WITH llRetVal, ;
-			&lcEnum_Indexes..IndexSQL WITH lcSQL
-	ENDIF
-	SELECT ( lcEnumTables )
-	llSkipChildTbl=.F.
-
-			ELSE
-
-	* log error that this rel couldn't be created because table has
-	* more than one primary key
-	lcErr=STRTRAN( MULTIPLE_PKEYS_LOC, "|1", lcParent )
-	SELECT ( lcEnumRelsTbl )
-	REPLACE RIError WITH lcErr ADDITIVE
-	llSkipChildTbl=.T.
-
-			ENDIF
-
-			* Deal with child table
-			IF !llSkipChildTbl THEN
-
-	lcConstraintName=CHRTRAN( lcNewForeign, ", []", "" )
-	lcConstraintName=FOREIGN_KEY_PREFIX + LEFT( lcConstraintName, MAX_NAME_LENGTH-LEN( FOREIGN_KEY_PREFIX ))
-	lcConstraintName=this.UniqueOraName( lcConstraintName )
-
-	lcSQL="ALTER TABLE [" + lcChild + "] WITH NOCHECK" &&  NOCHECK Add JEI RKR 2005.03.29
-	lcSQL=lcSQL + " ADD " +lcOParen + "CONSTRAINT "
-	lcSQL=lcSQL + "[" + lcConstraintName + "]" +  " FOREIGN KEY "
-	lcSQL=lcSQL + " ( " + lcNewForeign + " )"
-	lcSQL=lcSQL + " REFERENCES [" + lcParent + "] ( " + lcNewPrimary +" )"
-
-	* SQL95 does not support cascading deletes
-	* Neither Oracle nor SQL95 support cascading updates via DRI
-	* {Change JEI - RKR 2005.03.28
-*                    IF lcDeleteType=CASCADE_CHAR_LOC AND this.ServerType="Oracle" THEN
-	IF ( lcDeleteType=CASCADE_CHAR_LOC AND this.ServerType="Oracle" ) OR ;
-		( (this.ServerType = "SQL Server95" AND this.ServerVer >= 8 ) AND ;
-		( lcUpdateType = CASCADE_CHAR_LOC OR  lcDeleteType = CASCADE_CHAR_LOC ))THEN
-
-		IF this.ServerType="Oracle"
-			lcSQL=lcSQL + " ON DELETE CASCADE"
 		ELSE
-			* SQL Server
-			IF lcDeleteType = CASCADE_CHAR_LOC
-				lcSQL=lcSQL + " ON DELETE CASCADE"
-			ENDIF
-			IF lcUpdateType = CASCADE_CHAR_LOC
-				lcSQL=lcSQL + " ON UPDATE CASCADE"
-			ENDIF
+
+			* log error that this rel couldn't be created because table has
+			* more than one primary key
+			lcErr=STRTRAN( MULTIPLE_PKEYS_LOC, "|1", lcParent )
+			SELECT ( lcEnumRelsTbl )
+			REPLACE RIError WITH lcErr ADDITIVE
+			llSkipChildTbl=.T.
+
 		ENDIF
-*                        lcSQL=lcSQL + " ON DELETE CASCADE )"
-	* }Change JEI - RKR 2005.03.28
-	ELSE
-		lcSQL=lcSQL + lcCParen
+
+		* Deal with child table
+		IF !llSkipChildTbl THEN
+
+			lcConstraintName = CHRTRAN( lcNewForeign, ", []", "" )
+			lcConstraintName = FOREIGN_KEY_PREFIX + LEFT( lcConstraintName, MAX_NAME_LENGTH-LEN( FOREIGN_KEY_PREFIX ))
+			lcConstraintName = THIS.UniqueOraName( lcConstraintName )
+
+			lcSQL = "ALTER TABLE [" + lcChild + "] WITH NOCHECK" &&  NOCHECK Add JEI RKR 2005.03.29
+			lcSQL = lcSQL + " ADD " +lcOParen + "CONSTRAINT "
+			lcSQL = lcSQL + "[" + lcConstraintName + "]" +  " FOREIGN KEY "
+			lcSQL = lcSQL + " ( " + lcNewForeign + " )"
+			lcSQL = lcSQL + " REFERENCES [" + lcParent + "] ( " + lcNewPrimary +" )"
+
+			* SQL95 does not support cascading deletes
+			* Neither Oracle nor SQL95 support cascading updates via DRI
+			* {Change JEI - RKR 2005.03.28
+			*                    IF lcDeleteType=CASCADE_CHAR_LOC AND this.ServerType="Oracle" THEN
+			IF ( lcDeleteType=CASCADE_CHAR_LOC AND THIS.ServerType="Oracle" ) OR ;
+					( (THIS.ServerType = "SQL Server95" AND THIS.ServerVer >= 8 ) AND ;
+					( lcUpdateType = CASCADE_CHAR_LOC OR  lcDeleteType = CASCADE_CHAR_LOC ))THEN
+
+				IF THIS.ServerType="Oracle"
+					lcSQL=lcSQL + " ON DELETE CASCADE"
+				ELSE
+					* SQL Server
+					IF lcDeleteType = CASCADE_CHAR_LOC
+						lcSQL=lcSQL + " ON DELETE CASCADE"
+					ENDIF
+					IF lcUpdateType = CASCADE_CHAR_LOC
+						lcSQL=lcSQL + " ON UPDATE CASCADE"
+					ENDIF
+				ENDIF
+				*                        lcSQL=lcSQL + " ON DELETE CASCADE )"
+				* }Change JEI - RKR 2005.03.28
+			ELSE
+				lcSQL=lcSQL + lcCParen
+			ENDIF
+
+			* Execute the statement if appropriate
+			IF THIS.DoUpsize AND llRetVal THEN
+				llRetVal=THIS.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
+				IF !llRetVal THEN
+					THIS.StoreError( lnError, lcErrMsg, lcSQL, DRI_ERR_LOC, lcChild, RI_LOC )
+				ENDIF
+			ENDIF
+
+			* Add comment and tack on to existing table definition sql
+			lcSQL = lcCRLF + lcCRLF + ORA_FKEY_COMMENT_LOC + lcCRLF + lcSQL
+			THIS.StoreRiCode( lcChild, "TableSQL", lcSQL, "FKeyCrea", llRetVal )
+
+			SELECT ( lcEnumRelsTbl )
+
+		ENDIF
+
+		LOOP	&& continue after DRI code
+
+	ENDIF
+	* End of DRI code
+
+	* PARENT DELETE RI
+	* Prevents deleting a PARENT record for which CHILD records exist,
+	* or deletes dependent CHILD records ( cascading ).
+
+	* PARENT DELETE for SQL 4.x or SQL '95 and cascade delete
+	IF ( THIS.SQLServer AND lcDeleteType <> IGNORE_CHAR_LOC ) THEN
+
+		lcRestr = THIS.BuildRestr( @aNewPrimary, "deleted", @aNewForeign, lcChild, "AND" )
+		IF lcDeleteType = CASCADE_CHAR_LOC THEN
+			lcSQL = THIS.BuildComment( CASCADE_DELETES_LOC, lcChild )
+			lcSQL = lcSQL + "DELETE " + lcChild + " FROM deleted, " + lcChild +  " WHERE " + lcRestr + lcCRLF
+		ELSE
+			lcErrMsg = THIS.HandleQuotes( gcQT + STRTRAN( DEPENDENT_ROWS_LOC, "|1", lcChild ) + gcQT )
+			lcSQL    = THIS.BuildComment( PREVENT_DELETES_LOC, lcChild )
+			lcSQL    = lcSQL + "IF ( SELECT COUNT( * ) FROM deleted, " + lcChild + " WHERE ( " + lcRestr + " )) > 0" + lcCRLF
+			lcSQL    = lcSQL + "    BEGIN" + lcCRLF
+			lcSQL    = lcSQL + "    RAISERROR " + ERR_SVR_DELREFVIO + " " + lcErrMsg + lcCRLF
+			lcSQL    = lcSQL + "    SELECT @status='Failed'" + lcCRLF
+			lcSQL    = lcSQL + "    END" + lcCRLF
+		ENDIF
+
+		* save this code
+		THIS.StoreRiCode( lcParent, "DeleteRI", lcSQL )
 	ENDIF
 
-	* Execute the statement if appropriate
-	IF this.DoUpsize AND llRetVal THEN
-		llRetVal=this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
-		IF !llRetVal THEN
-			this.StoreError( lnError, lcErrMsg, lcSQL, DRI_ERR_LOC, lcChild, RI_LOC )
+	* PARENT DELETE for Oracle
+	IF THIS.ServerType = "Oracle" AND lcDeleteType <> IGNORE_CHAR_LOC
+
+		lcRestr = THIS.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, ":old", "AND" )
+		IF lcDeleteType = CASCADE_CHAR_LOC THEN
+			lcSQL = THIS.BuildComment( CASCADE_DELETES_LOC, lcChild )
+			lcSQL = lcSQL + "IF DELETING THEN " + lcCRLF
+			lcSQL = lcSQL + "    DELETE FROM " + lcChild +  " WHERE " + lcRestr + ";" + lcCRLF
+			lcSQL = lcSQL + "END IF;" + lcCRLF
+		ELSE
+			lcErrMsg = "'" + STRTRAN( DEPENDENT_ROWS_LOC, "'|1'", gc2QT + lcChild + gc2QT ) + "'"
+			lcSQL = THIS.BuildComment( PREVENT_DELETES_LOC, lcChild )
+			lcSQL = lcSQL + "IF DELETING THEN " + lcCRLF
+			lcSQL = lcSQL + "    SELECT COUNT( * ) INTO " + REC_COUNT_VAR + " FROM " + lcChild + " WHERE ( " + lcRestr + " );" + lcCRLF
+			lcSQL = lcSQL + "    IF " + REC_COUNT_VAR + " > 0 THEN " + lcCRLF
+			lcSQL = lcSQL + "        raise_application_error( " + ERR_SVR_DELREFVIO_ORA + ", " + lcErrMsg + " );" + lcCRLF
+			lcSQL = lcSQL + "    END IF;" + lcCRLF
+			lcSQL = lcSQL + "END IF;" + lcCRLF
 		ENDIF
+
+		* save this code
+		THIS.StoreRiCode( lcParent, "DeleteRI", lcSQL )
+
 	ENDIF
 
-	* Add comment and tack on to existing table definition sql
-	lcSQL = lcCRLF + lcCRLF + ORA_FKEY_COMMENT_LOC + lcCRLF + lcSQL
-	this.StoreRiCode( lcChild, "TableSQL", lcSQL, "FKeyCrea", llRetVal )
+	* PARENT UPDATE trigger
+	* Prevents changing a PARENT key for which CHILD records exist,
+	* or keeps CHILD keys in sync with PARENT keys ( cascading ).
+	* Executed only if SQL Server or if Oracle or SQL '95 when updates are cascaded
+	* Handle SQL Server ( 4.x or '95 ) case here
 
-	SELECT ( lcEnumRelsTbl )
+	* PARENT UPDATE for Sql Server
+	IF THIS.SQLServer AND lcUpdateType <> IGNORE_CHAR_LOC
 
-			ENDIF
-
-			LOOP	&& continue after DRI code
-
+		lcRestr = THIS.BuildRestr( @aNewPrimary, "deleted", @aNewForeign, lcChild, "AND" )
+		IF lcUpdateType = CASCADE_CHAR_LOC THEN
+			lcSQL = THIS.BuildComment( CASCADE_UPDATES_LOC, lcChild )
+		ELSE
+			lcSQL = THIS.BuildComment( PREVENT_M_UPDATES_LOC, lcChild )
 		ENDIF
-		* End of DRI code
-
-		* PARENT DELETE RI
-		* Prevents deleting a PARENT record for which CHILD records exist,
-		* or deletes dependent CHILD records ( cascading ).
-
-		* PARENT DELETE for SQL 4.x or SQL '95 and cascade delete
-		IF ( this.SQLServer AND lcDeleteType <> IGNORE_CHAR_LOC ) THEN
-
-			lcRestr = this.BuildRestr( @aNewPrimary, "deleted", @aNewForeign, lcChild, "AND" )
-			IF lcDeleteType = CASCADE_CHAR_LOC THEN
-	lcSQL = this.BuildComment( CASCADE_DELETES_LOC, lcChild )
-	lcSQL = lcSQL + "DELETE " + lcChild + " FROM deleted, " + lcChild +  " WHERE " + lcRestr + lcCRLF
-			ELSE
-	lcErrMsg = this.HandleQuotes( gcQT + STRTRAN( DEPENDENT_ROWS_LOC, "|1", lcChild ) + gcQT )
-	lcSQL= this.BuildComment( PREVENT_DELETES_LOC, lcChild )
-	lcSQL= lcSQL + "IF ( SELECT COUNT( * ) FROM deleted, " + lcChild + " WHERE ( " + lcRestr + " )) > 0" + lcCRLF
-	lcSQL= lcSQL + "    BEGIN" + lcCRLF
-	lcSQL= lcSQL + "    RAISERROR " + ERR_SVR_DELREFVIO + " " + lcErrMsg + lcCRLF
-	lcSQL= lcSQL + "    SELECT @status='Failed'" + lcCRLF
-	lcSQL= lcSQL + "    END" + lcCRLF
-			ENDIF
-
-			* save this code
-			this.StoreRiCode( lcParent, "DeleteRI", lcSQL )
+		lcSQL = lcSQL + "IF " + THIS.BuildUpdateTest( @aNewPrimary )
+		lcSQL = lcSQL + " AND @status<>'Failed'" + lcCRLF
+		lcSQL = lcSQL + "    BEGIN" + lcCRLF
+		IF lcUpdateType=CASCADE_CHAR_LOC THEN
+			lcSetKeys = THIS.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, "inserted", ", " )
+			lcSQL = lcSQL + "         UPDATE " + lcChild + lcCRLF
+			lcSQL = lcSQL + "         SET " + lcSetKeys + lcCRLF
+			lcSQL = lcSQL + "         FROM " + lcChild + ", deleted, inserted" + lcCRLF
+			lcSQL = lcSQL + "         WHERE " + lcRestr + lcCRLF
+		ELSE
+			lcErrMsg=THIS.HandleQuotes( gcQT+STRTRAN( DEPENDENT_ROWS_LOC, "|1", lcChild )+ gcQT )
+			lcSQL = lcSQL + "    IF ( SELECT COUNT( * ) FROM deleted, " + lcChild + " WHERE ( " + lcRestr + " )) > 0" + lcCRLF
+			lcSQL = lcSQL + "        BEGIN" + lcCRLF
+			lcSQL = lcSQL + "            RAISERROR " + ERR_SVR_DELREFVIO + " " + lcErrMsg + lcCRLF
+			lcSQL = lcSQL + "            SELECT @status='Failed'" + lcCRLF
+			lcSQL = lcSQL + "            END" + lcCRLF
 		ENDIF
+		lcSQL = lcSQL + "    END" + lcCRLF
 
-		* PARENT DELETE for Oracle
-		IF this.ServerType = "Oracle" AND lcDeleteType <> IGNORE_CHAR_LOC
+		* save this code
+		THIS.StoreRiCode( lcParent, "UpdateRI", lcSQL )
+	ENDIF
 
-			lcRestr = this.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, ":old", "AND" )
-			IF lcDeleteType = CASCADE_CHAR_LOC THEN
-	lcSQL = this.BuildComment( CASCADE_DELETES_LOC, lcChild )
-	lcSQL = lcSQL + "IF DELETING THEN " + lcCRLF
-	lcSQL = lcSQL + "    DELETE FROM " + lcChild +  " WHERE " + lcRestr + ";" + lcCRLF
-	lcSQL = lcSQL + "END IF;" + lcCRLF
-			ELSE
-	lcErrMsg = "'" + STRTRAN( DEPENDENT_ROWS_LOC, "'|1'", gc2QT + lcChild + gc2QT ) + "'"
-	lcSQL = this.BuildComment( PREVENT_DELETES_LOC, lcChild )
-	lcSQL = lcSQL + "IF DELETING THEN " + lcCRLF
-	lcSQL = lcSQL + "    SELECT COUNT( * ) INTO " + REC_COUNT_VAR + " FROM " + lcChild + " WHERE ( " + lcRestr + " );" + lcCRLF
-	lcSQL = lcSQL + "    IF " + REC_COUNT_VAR + " > 0 THEN " + lcCRLF
-	lcSQL = lcSQL + "        raise_application_error( " + ERR_SVR_DELREFVIO_ORA + ", " + lcErrMsg + " );" + lcCRLF
-	lcSQL = lcSQL + "    END IF;" + lcCRLF
-	lcSQL = lcSQL + "END IF;" + lcCRLF
-			ENDIF
+	* PARENT UPDATE for Oracle
+	IF THIS.ServerType = "Oracle" AND lcUpdateType <> IGNORE_CHAR_LOC
 
-			* save this code
-			this.StoreRiCode( lcParent, "DeleteRI", lcSQL )
-
+		lcRestr   = THIS.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, ":old", "AND" )
+		lcUpdTest = THIS.BuildRestr( @aNewForeign, ":old", @aNewPrimary, ":new", "OR" )
+		lcUpdTest = STRTRAN( lcUpdTest, "=", "!=" )
+		IF lcUpdateType = CASCADE_CHAR_LOC THEN
+			lcSQL = THIS.BuildComment( CASCADE_UPDATES_LOC, lcChild )
+		ELSE
+			lcSQL = THIS.BuildComment( PREVENT_M_UPDATES_LOC, lcChild )
 		ENDIF
-
-		* PARENT UPDATE trigger
-		* Prevents changing a PARENT key for which CHILD records exist,
-		* or keeps CHILD keys in sync with PARENT keys ( cascading ).
-		* Executed only if SQL Server or if Oracle or SQL '95 when updates are cascaded
-		* Handle SQL Server ( 4.x or '95 ) case here
-
-		* PARENT UPDATE for Sql Server
-		IF this.SQLServer AND lcUpdateType <> IGNORE_CHAR_LOC
-
-			lcRestr = this.BuildRestr( @aNewPrimary, "deleted", @aNewForeign, lcChild, "AND" )
-			IF lcUpdateType = CASCADE_CHAR_LOC THEN
-	lcSQL = this.BuildComment( CASCADE_UPDATES_LOC, lcChild )
-			ELSE
-	lcSQL = this.BuildComment( PREVENT_M_UPDATES_LOC, lcChild )
-			ENDIF
-			lcSQL = lcSQL + "IF " + this.BuildUpdateTest( @aNewPrimary )
-			lcSQL = lcSQL + " AND @status<>'Failed'" + lcCRLF
-			lcSQL = lcSQL + "    BEGIN" + lcCRLF
-			IF lcUpdateType=CASCADE_CHAR_LOC THEN
-	lcSetKeys = this.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, "inserted", ", " )
-	lcSQL = lcSQL + "         UPDATE " + lcChild + lcCRLF
-	lcSQL = lcSQL + "         SET " + lcSetKeys + lcCRLF
-	lcSQL = lcSQL + "         FROM " + lcChild + ", deleted, inserted" + lcCRLF
-	lcSQL = lcSQL + "         WHERE " + lcRestr + lcCRLF
-			ELSE
-	lcErrMsg=this.HandleQuotes( gcQT+STRTRAN( DEPENDENT_ROWS_LOC, "|1", lcChild )+ gcQT )
-	lcSQL = lcSQL + "    IF ( SELECT COUNT( * ) FROM deleted, " + lcChild + " WHERE ( " + lcRestr + " )) > 0" + lcCRLF
-	lcSQL = lcSQL + "        BEGIN" + lcCRLF
-	lcSQL = lcSQL + "            RAISERROR " + ERR_SVR_DELREFVIO + " " + lcErrMsg + lcCRLF
-	lcSQL = lcSQL + "            SELECT @status='Failed'" + lcCRLF
-	lcSQL = lcSQL + "            END" + lcCRLF
-			ENDIF
-			lcSQL = lcSQL + "    END" + lcCRLF
-
-			* save this code
-			this.StoreRiCode( lcParent, "UpdateRI", lcSQL )
-		ENDIF
-
-		* PARENT UPDATE for Oracle
-		IF this.ServerType = "Oracle" AND lcUpdateType <> IGNORE_CHAR_LOC
-
-			lcRestr = this.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, ":old", "AND" )
-			lcUpdTest = this.BuildRestr( @aNewForeign, ":old", @aNewPrimary, ":new", "OR" )
-			lcUpdTest = STRTRAN( lcUpdTest, "=", "!=" )
-			IF lcUpdateType = CASCADE_CHAR_LOC THEN
-	lcSQL = this.BuildComment( CASCADE_UPDATES_LOC, lcChild )
-			ELSE
-	lcSQL = this.BuildComment( PREVENT_M_UPDATES_LOC, lcChild )
-			ENDIF
-			IF lcUpdateType = CASCADE_CHAR_LOC THEN
-	lcSetKeys = this.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, ":new", ", " )
-	lcSQL = lcSQL + "IF UPDATING AND " + lcUpdTest + " THEN" + lcCRLF
-	lcSQL = lcSQL + "    UPDATE " + lcChild + lcCRLF
-	lcSQL = lcSQL + "    SET " + lcSetKeys + lcCRLF
-	lcSQL = lcSQL + "    WHERE " + lcRestr + ";" + lcCRLF
-	lcSQL = lcSQL + "END IF;" + lcCRLF
-			ELSE
-	lcErrMsg = "'" + STRTRAN( DEPENDENT_ROWS_LOC, "'|1'", gc2QT + lcChild + gc2QT ) +  "'"
-	lcSQL = lcSQL + "IF UPDATING AND " + lcUpdTest + " THEN" + lcCRLF
-	lcSQL = lcSQL + "    SELECT COUNT( * ) INTO " + REC_COUNT_VAR + " FROM " + lcChild + " WHERE ( " + lcRestr + " );" + lcCRLF
-	lcSQL = lcSQL + "    IF " + REC_COUNT_VAR + " > 0 THEN" + lcCRLF
-	lcSQL = lcSQL + "        raise_application_error( " + ERR_SVR_UPDREFVIO_ORA + ", " + lcErrMsg + " );" + lcCRLF
-	lcSQL = lcSQL + "    END IF;" + lcCRLF
-	lcSQL = lcSQL + "END IF;" + lcCRLF
-			ENDIF
-
-			this.StoreRiCode( lcParent, "UpdateRI", lcSQL )
-
-		ENDIF
-
-		* CHILD UPDATE trigger
-		* Prevents changing or adding a CHILD record to a key not in the PARENT table
-		* CHILD INSERT trigger
-		* Prevents adding a CHILD record for which no PARENT record exists
-
-		* CHILD UPDATE AND INSERT for SQL Server 4.x and 95
-		IF this.SQLServer THEN
-
-			* CHILD UPDATE trigger
-			IF lcUpdateType = RESTRICT_CHAR_LOC THEN
-	lcRestr = this.BuildRestr( @aNewPrimary, lcParent, @aNewForeign, "inserted", "AND" )
-	lcErrMsg = this.HandleQuotes( gcQT + STRTRAN( CANT_ORPHAN_LOC, "|1", lcParent ) + gcQT )
-
-	lcSQL = this.BuildComment( PREVENT_C_UPDATES_LOC, lcParent )
-	lcSQL = lcSQL + "IF " + this.BuildUpdateTest( @aNewForeign )
-	lcSQL =lcSQL + " AND @status<>'Failed'" + lcCRLF
-	lcSQL = lcSQL + "    BEGIN" + lcCRLF
-	lcSQL = lcSQL + "IF ( SELECT COUNT( * ) FROM inserted ) !=" + lcCRLF
-	lcSQL = lcSQL + "           ( SELECT COUNT( * ) FROM " + lcParent + ", inserted WHERE ( " + lcRestr + " ))" + lcCRLF
-	lcSQL = lcSQL + "            BEGIN" + lcCRLF
-	lcSQL = lcSQL + "                RAISERROR " + ERR_SVR_UPDREFVIO + " " + lcErrMsg + lcCRLF
-	lcSQL = lcSQL + "                SELECT @status = 'Failed'" + lcCRLF
-	lcSQL = lcSQL + "            END" + lcCRLF
-	lcSQL = lcSQL + "    END" + lcCRLF
-
-	* save this code
-	this.StoreRiCode( lcChild, "UpdateRI", lcSQL )
-
-			ENDIF
-
-			* CHILD INSERT trigger
-			IF lcInsertType = RESTRICT_CHAR_LOC
-	lcErrMsg = this.HandleQuotes( gcQT+ STRTRAN( CANT_ORPHAN_LOC, "|1", lcParent ) + gcQT )
-	lcRestr = this.BuildRestr( @aNewPrimary, lcParent, @aNewForeign, "inserted", "AND" )
-	lcSQL = this.BuildComment( PREVENT_INSERTS_LOC, lcParent )
-	lcSQL = lcSQL + "IF @status<>'Failed'" + lcCRLF
-	lcSQL = lcSQL + "    BEGIN" + lcCRLF
-	lcSQL = lcSQL + "    IF( SELECT COUNT( * ) FROM inserted ) !=" + lcCRLF
-	lcSQL = lcSQL + "   ( SELECT COUNT( * ) FROM " + lcParent + ", inserted WHERE ( " + lcRestr + " ))" + lcCRLF
-	lcSQL = lcSQL + "        BEGIN" + lcCRLF
-	lcSQL = lcSQL + "            RAISERROR " + ERR_SVR_UPDREFVIO + " " + lcErrMsg + lcCRLF
-	lcSQL = lcSQL + "            SELECT @status='Failed'" + lcCRLF
-	lcSQL = lcSQL + "        END" + lcCRLF
-	lcSQL = lcSQL + "    END" + lcCRLF
-
-	* save this code
-	this.StoreRiCode( lcChild, "InsertRI", lcSQL )
-
-			ENDIF
-		ENDIF
-
-		* CHILD UPDATE AND INSERT for Oracle
-		IF this.ServerType = "Oracle" AND ;
-	( lcUpdateType = RESTRICT_CHAR_LOC OR lcInsertType = RESTRICT_CHAR_LOC )
-
-			lcUpdTest = this.BuildRestr( @aNewForeign, ":old", @aNewPrimary, ":new", "OR" )
-			lcUpdTest = STRTRAN( lcUpdTest, "=", "!=" )
-
-			lcRestr = this.BuildRestr( @aNewPrimary, lcParent, @aNewForeign, ":new", "AND" )
-			lcErrMsg = "'" + STRTRAN( CANT_ORPHAN_LOC, "'|1'", gc2QT + lcParent + gc2QT ) + "'"
-			lcSQL = this.BuildComment( PREVENT_SELF_O_LOC, lcParent )
-			lcSQL = lcSQL + "IF ( UPDATING AND " + lcUpdTest + " ) OR INSERTING THEN" + lcCRLF
-			lcSQL = lcSQL + "    SELECT COUNT( * ) INTO " + REC_COUNT_VAR + " FROM " + lcParent + " WHERE ( " + lcRestr + " );" + lcCRLF
-			lcSQL = lcSQL + "    IF " + REC_COUNT_VAR + " = 0 THEN" + lcCRLF
+		IF lcUpdateType = CASCADE_CHAR_LOC THEN
+			lcSetKeys = THIS.BuildRestr( @aNewForeign, lcChild, @aNewPrimary, ":new", ", " )
+			lcSQL = lcSQL + "IF UPDATING AND " + lcUpdTest + " THEN" + lcCRLF
+			lcSQL = lcSQL + "    UPDATE " + lcChild + lcCRLF
+			lcSQL = lcSQL + "    SET " + lcSetKeys + lcCRLF
+			lcSQL = lcSQL + "    WHERE " + lcRestr + ";" + lcCRLF
+			lcSQL = lcSQL + "END IF;" + lcCRLF
+		ELSE
+			lcErrMsg = "'" + STRTRAN( DEPENDENT_ROWS_LOC, "'|1'", gc2QT + lcChild + gc2QT ) +  "'"
+			lcSQL = lcSQL + "IF UPDATING AND " + lcUpdTest + " THEN" + lcCRLF
+			lcSQL = lcSQL + "    SELECT COUNT( * ) INTO " + REC_COUNT_VAR + " FROM " + lcChild + " WHERE ( " + lcRestr + " );" + lcCRLF
+			lcSQL = lcSQL + "    IF " + REC_COUNT_VAR + " > 0 THEN" + lcCRLF
 			lcSQL = lcSQL + "        raise_application_error( " + ERR_SVR_UPDREFVIO_ORA + ", " + lcErrMsg + " );" + lcCRLF
 			lcSQL = lcSQL + "    END IF;" + lcCRLF
 			lcSQL = lcSQL + "END IF;" + lcCRLF
+		ENDIF
+
+		THIS.StoreRiCode( lcParent, "UpdateRI", lcSQL )
+
+	ENDIF
+
+	* CHILD UPDATE trigger
+	* Prevents changing or adding a CHILD record to a key not in the PARENT table
+	* CHILD INSERT trigger
+	* Prevents adding a CHILD record for which no PARENT record exists
+
+	* CHILD UPDATE AND INSERT for SQL Server 4.x and 95
+	IF THIS.SQLServer THEN
+
+		* CHILD UPDATE trigger
+		IF lcUpdateType = RESTRICT_CHAR_LOC THEN
+			lcRestr = THIS.BuildRestr( @aNewPrimary, lcParent, @aNewForeign, "inserted", "AND" )
+			lcErrMsg = THIS.HandleQuotes( gcQT + STRTRAN( CANT_ORPHAN_LOC, "|1", lcParent ) + gcQT )
+
+			lcSQL = THIS.BuildComment( PREVENT_C_UPDATES_LOC, lcParent )
+			lcSQL = lcSQL + "IF " + THIS.BuildUpdateTest( @aNewForeign )
+			lcSQL = lcSQL + " AND @status<>'Failed'" + lcCRLF
+			lcSQL = lcSQL + "    BEGIN" + lcCRLF
+			lcSQL = lcSQL + "IF ( SELECT COUNT( * ) FROM inserted ) !=" + lcCRLF
+			lcSQL = lcSQL + "           ( SELECT COUNT( * ) FROM " + lcParent + ", inserted WHERE ( " + lcRestr + " ))" + lcCRLF
+			lcSQL = lcSQL + "            BEGIN" + lcCRLF
+			lcSQL = lcSQL + "                RAISERROR " + ERR_SVR_UPDREFVIO + " " + lcErrMsg + lcCRLF
+			lcSQL = lcSQL + "                SELECT @status = 'Failed'" + lcCRLF
+			lcSQL = lcSQL + "            END" + lcCRLF
+			lcSQL = lcSQL + "    END" + lcCRLF
 
 			* save this code
-			this.StoreRiCode( lcChild, "UpdateRI", lcSQL )
+			THIS.StoreRiCode( lcChild, "UpdateRI", lcSQL )
+
 		ENDIF
 
-		* If we're dealing with SQL Server, run sp_primarykey, sp_foreignkey
-		IF this.ServerType <> "Oracle" AND ALEN( aNewPrimary, 1 ) <= 8 AND !this.ExportDRI THEN
-			* Check if the table is in multiple rels
-			SELECT COUNT( * ) FROM ( lcEnumRelsTbl ) WHERE RTRIM( DD_PARENT )==lcParent ;
-	AND !DD_CHIEXPR=="" AND !DD_PAREXPR=="" INTO ARRAY aDupeCount
-			IF aDupeCount>1 THEN
-	* check to see if the local table has a primary key index
-	SELECT RmtExpr FROM ( lcEnum_Indexes ) WHERE RTRIM( IndexName )==lcParent ;
-		AND LclIdxType="Primary key" INTO ARRAY aIndexExpr
-	* If primary key index expression is same as RI primary key, run sp_primary key
-	IF RTRIM( aIndexExpr )==lcNewPrimary THEN
-		this.SetPKey( lcParent, lcNewPrimary )
-		this.SetFKey( lcChild, lcNewForeign, lcParent )
-	ELSE
-		this.SetCommonKey( lcParent, @aNewPrimary, lcChild, @aNewForeign )
+		* CHILD INSERT trigger
+		IF lcInsertType = RESTRICT_CHAR_LOC
+			lcErrMsg = THIS.HandleQuotes( gcQT+ STRTRAN( CANT_ORPHAN_LOC, "|1", lcParent ) + gcQT )
+			lcRestr = THIS.BuildRestr( @aNewPrimary, lcParent, @aNewForeign, "inserted", "AND" )
+			lcSQL = THIS.BuildComment( PREVENT_INSERTS_LOC, lcParent )
+			lcSQL = lcSQL + "IF @status<>'Failed'" + lcCRLF
+			lcSQL = lcSQL + "    BEGIN" + lcCRLF
+			lcSQL = lcSQL + "    IF( SELECT COUNT( * ) FROM inserted ) !=" + lcCRLF
+			lcSQL = lcSQL + "   ( SELECT COUNT( * ) FROM " + lcParent + ", inserted WHERE ( " + lcRestr + " ))" + lcCRLF
+			lcSQL = lcSQL + "        BEGIN" + lcCRLF
+			lcSQL = lcSQL + "            RAISERROR " + ERR_SVR_UPDREFVIO + " " + lcErrMsg + lcCRLF
+			lcSQL = lcSQL + "            SELECT @status='Failed'" + lcCRLF
+			lcSQL = lcSQL + "        END" + lcCRLF
+			lcSQL = lcSQL + "    END" + lcCRLF
+
+			* save this code
+			THIS.StoreRiCode( lcChild, "InsertRI", lcSQL )
+
+		ENDIF
 	ENDIF
-			ELSE
-	this.SetPKey( lcParent, lcNewPrimary )
-	this.SetFKey( lcChild, lcNewForeign, lcParent )
-			ENDIF
-		ENDIF
 
-	ENDSCAN
-	raiseevent( This, 'CompleteProcess' )
-	SELECT ( lnOldArea )
+	* CHILD UPDATE AND INSERT for Oracle
+	IF THIS.ServerType = "Oracle" AND ;
+			( lcUpdateType = RESTRICT_CHAR_LOC OR lcInsertType = RESTRICT_CHAR_LOC )
+
+		lcUpdTest = THIS.BuildRestr( @aNewForeign, ":old", @aNewPrimary, ":new", "OR" )
+		lcUpdTest = STRTRAN( lcUpdTest, "=", "!=" )
+
+		lcRestr = THIS.BuildRestr( @aNewPrimary, lcParent, @aNewForeign, ":new", "AND" )
+		lcErrMsg = "'" + STRTRAN( CANT_ORPHAN_LOC, "'|1'", gc2QT + lcParent + gc2QT ) + "'"
+		lcSQL = THIS.BuildComment( PREVENT_SELF_O_LOC, lcParent )
+		lcSQL = lcSQL + "IF ( UPDATING AND " + lcUpdTest + " ) OR INSERTING THEN" + lcCRLF
+		lcSQL = lcSQL + "    SELECT COUNT( * ) INTO " + REC_COUNT_VAR + " FROM " + lcParent + " WHERE ( " + lcRestr + " );" + lcCRLF
+		lcSQL = lcSQL + "    IF " + REC_COUNT_VAR + " = 0 THEN" + lcCRLF
+		lcSQL = lcSQL + "        raise_application_error( " + ERR_SVR_UPDREFVIO_ORA + ", " + lcErrMsg + " );" + lcCRLF
+		lcSQL = lcSQL + "    END IF;" + lcCRLF
+		lcSQL = lcSQL + "END IF;" + lcCRLF
+
+		* save this code
+		THIS.StoreRiCode( lcChild, "UpdateRI", lcSQL )
+	ENDIF
+
+	* If we're dealing with SQL Server, run sp_primarykey, sp_foreignkey
+	IF THIS.ServerType <> "Oracle" AND ALEN( aNewPrimary, 1 ) <= 8 AND !THIS.ExportDRI THEN
+		* Check if the table is in multiple rels
+		SELECT COUNT( * ) FROM ( lcEnumRelsTbl ) WHERE RTRIM( DD_PARENT )==lcParent ;
+			AND !DD_CHIEXPR=="" AND !DD_PAREXPR=="" INTO ARRAY aDupeCount
+		IF aDupeCount>1 THEN
+			* check to see if the local table has a primary key index
+			SELECT RmtExpr FROM ( lcEnum_Indexes ) WHERE RTRIM( IndexName )==lcParent ;
+				AND LclIdxType="Primary key" INTO ARRAY aIndexExpr
+			* If primary key index expression is same as RI primary key, run sp_primary key
+			IF RTRIM( aIndexExpr )==lcNewPrimary THEN
+				THIS.SetPKey( lcParent, lcNewPrimary )
+				THIS.SetFKey( lcChild, lcNewForeign, lcParent )
+			ELSE
+				THIS.SetCommonKey( lcParent, @aNewPrimary, lcChild, @aNewForeign )
+			ENDIF
+		ELSE
+			THIS.SetPKey( lcParent, lcNewPrimary )
+			THIS.SetFKey( lcChild, lcNewForeign, lcParent )
+		ENDIF
+	ENDIF
+
+ENDSCAN
+RAISEEVENT( THIS, 'CompleteProcess' )
+SELECT ( lnOldArea )
 
 
 FUNCTION SetCommonKey
@@ -6082,149 +6079,148 @@ FUNCTION CreateTriggers
 			* after update or delete: cascade update ri, cascade delete ri ( AT )
 
 			SCAN FOR EXPORT = .T. AND ( !EMPTY( InsertRI ) OR !EMPTY( UpdateRI ) OR !EMPTY( DeleteRI ))
-	lcTableName = RTRIM( &lcEnumTables..RmtTblName )
+				lcTableName = RTRIM( &lcEnumTables..RmtTblName )
 
-	* Thermometer stuff
-	lcThermMsg = STRTRAN( THIS_TABLE_LOC, '|1', lcTableName )
-	this.UpDateTherm( lnTableCount, lcThermMsg )
-	lnTableCount = lnTableCount+1
+				* Thermometer stuff
+				lcThermMsg = STRTRAN( THIS_TABLE_LOC, '|1', lcTableName )
+				this.UpDateTherm( lnTableCount, lcThermMsg )
+				lnTableCount = lnTableCount+1
 
-	* Grab RI and validation rule code ( Note that all the validation rule
-	* SQL has already been placed in the InsertRI field )
-	lcInsertRI = &lcEnumTables..InsertRI
-	lcUpdateRI = &lcEnumTables..UpdateRI
-	lcDeleteRI = &lcEnumTables..DeleteRI
+				* Grab RI and validation rule code ( Note that all the validation rule
+				* SQL has already been placed in the InsertRI field )
+				lcInsertRI = &lcEnumTables..InsertRI
+				lcUpdateRI = &lcEnumTables..UpdateRI
+				lcDeleteRI = &lcEnumTables..DeleteRI
 
-	* if update code is restrict, need to
-	* toss in a variable declaration at the top of the trigger
-	* ( it can't come inside of the BEGIN...END commands )
-	IF AT( REC_COUNT_VAR, lcDeleteRI ) <> 0 OR AT( REC_COUNT_VAR, lcUpdateRI ) <> 0 THEN
-		lcDecl= "DECLARE " + REC_COUNT_VAR + " NUMBER;" + lcCRLF
-	ELSE
-		lcDecl=""
-	ENDIF
+				* if update code is restrict, need to
+				* toss in a variable declaration at the top of the trigger
+				* ( it can't come inside of the BEGIN...END commands )
+				IF AT( REC_COUNT_VAR, lcDeleteRI ) <> 0 OR AT( REC_COUNT_VAR, lcUpdateRI ) <> 0 THEN
+					lcDecl= "DECLARE " + REC_COUNT_VAR + " NUMBER;" + lcCRLF
+				ELSE
+					lcDecl=""
+				ENDIF
 
-	* Assemble before trigger
-	IF !EMPTY( lcInsertRI ) OR !EMPTY( lcUpdateRI ) OR !EMPTY( lcDeleteRI )
-		lcTrigName = ORA_BIUD_TRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( ORA_BIUD_TRIG_PREFIX ))
-		lcTrigName = this.UniqueOraName( lcTrigName )
+				* Assemble before trigger
+				IF !EMPTY( lcInsertRI ) OR !EMPTY( lcUpdateRI ) OR !EMPTY( lcDeleteRI )
+					lcTrigName = ORA_BIUD_TRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( ORA_BIUD_TRIG_PREFIX ))
+					lcTrigName = this.UniqueOraName( lcTrigName )
 
-		lcSQL = "CREATE TRIGGER " + lcTrigName + lcCRLF
-		lcSQL = lcSQL + "BEFORE INSERT OR UPDATE OR DELETE"
-		lcSQL = lcSQL + " ON " + lcTableName + " FOR EACH ROW " + lcCRLF
-		lcSQL = lcSQL + lcDecl + "BEGIN " + lcCRLF
-		lcSQL = lcSQL + lcInsertRI + lcUpdateRI + lcDeleteRI + lcCRLF + "END;"
+					lcSQL = "CREATE TRIGGER " + lcTrigName + lcCRLF
+					lcSQL = lcSQL + "BEFORE INSERT OR UPDATE OR DELETE"
+					lcSQL = lcSQL + " ON " + lcTableName + " FOR EACH ROW " + lcCRLF
+					lcSQL = lcSQL + lcDecl + "BEGIN " + lcCRLF
+					lcSQL = lcSQL + lcInsertRI + lcUpdateRI + lcDeleteRI + lcCRLF + "END;"
 
-		IF this.DoUpsize AND this.Perm_Trigger THEN
-			llRetVal = this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
-			IF !llRetVal THEN
-				this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
-				REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
-		RIErrNo WITH lnError
-			ENDIF
+					IF this.DoUpsize AND this.Perm_Trigger THEN
+						llRetVal = this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
+						IF !llRetVal THEN
+							this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
+							REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
+					RIErrNo WITH lnError
+						ENDIF
 
-		ENDIF
-		REPLACE &lcEnumTables..InsertRI WITH lcSQL, ;
-			&lcEnumTables..ItrigName WITH lcTrigName, ;
-			&lcEnumTables..InsertX WITH llRetVal
+					ENDIF
+					REPLACE &lcEnumTables..InsertRI WITH lcSQL, ;
+						&lcEnumTables..ItrigName WITH lcTrigName, ;
+						&lcEnumTables..InsertX WITH llRetVal
 
-		* Trigger sql is appended in the script, so clean it up
-		REPLACE &lcEnumTables..UpdateRI WITH "", ;
-			&lcEnumTables..DeleteRI WITH ""
-	ENDIF
+					* Trigger sql is appended in the script, so clean it up
+					REPLACE &lcEnumTables..UpdateRI WITH "", ;
+						&lcEnumTables..DeleteRI WITH ""
+				ENDIF
 
-	* Assemble after trigger
-	IF 	.F.
-		lcTrigName = ORA_AUD_TRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( ORA_AUD_TRIG_PREFIX ))
-		lcTrigName = this.UniqueOraName( lcTrigName )
-		lcSQL =         "CREATE TRIGGER " + lcTrigName + lcCRLF
-		lcSQL = lcSQL + "AFTER UPDATE OR DELETE"
-		lcSQL = lcSQL + " ON " + lcTableName + " FOR EACH ROW " + lcCRLF
-		lcSQL  =lcSQL + lcDecl + "BEGIN " + lcCRLF
-		lcSQL = lcSQL + lcUpdateRI + lcDeleteRI + lcCRLF + "END;"
+				* Assemble after trigger
+				IF 	.F.
+					lcTrigName = ORA_AUD_TRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( ORA_AUD_TRIG_PREFIX ))
+					lcTrigName = this.UniqueOraName( lcTrigName )
+					lcSQL =         "CREATE TRIGGER " + lcTrigName + lcCRLF
+					lcSQL = lcSQL + "AFTER UPDATE OR DELETE"
+					lcSQL = lcSQL + " ON " + lcTableName + " FOR EACH ROW " + lcCRLF
+					lcSQL = lcSQL + lcDecl + "BEGIN " + lcCRLF
+					lcSQL = lcSQL + lcUpdateRI + lcDeleteRI + lcCRLF + "END;"
 
-		IF this.DoUpsize AND this.Perm_Trigger THEN
-			llRetVal = this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
-			IF !llRetVal THEN
-				this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
-				REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
-		RIErrNo WITH lnError
-			ENDIF
-		ENDIF
-		REPLACE &lcEnumTables..DeleteRI WITH lcSQL, ;
-			&lcEnumTables..DtrigName WITH lcTrigName, ;
-			&lcEnumTables..DeleteX WITH llRetVal, ;
-			&lcEnumTables..UpdateRI WITH ""
-	ENDIF
+					IF this.DoUpsize AND this.Perm_Trigger THEN
+						llRetVal = this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
+						IF !llRetVal THEN
+							this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
+							REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
+					RIErrNo WITH lnError
+						ENDIF
+					ENDIF
+					REPLACE &lcEnumTables..DeleteRI WITH lcSQL, ;
+						&lcEnumTables..DtrigName WITH lcTrigName, ;
+						&lcEnumTables..DeleteX WITH llRetVal, ;
+						&lcEnumTables..UpdateRI WITH ""
+				ENDIF
 
-			ENDSCAN
+						ENDSCAN
 
-		#ENDIF
+					#ENDIF
 
-	ELSE
+				ELSE
 
-		* SQL Server: Create up to three triggers
-		* update trigger: updateRI, rules/sprocs
-		* insert trigger: insertRI, rules/sprocs
-		* delete trigger: deleteRI
+					* SQL Server: Create up to three triggers
+					* update trigger: updateRI, rules/sprocs
+					* insert trigger: insertRI, rules/sprocs
+					* delete trigger: deleteRI
 
-		SCAN FOR &lcEnumTables..EXPORT=.T.
-			lcSproc=""
-			lcSQL=""
-			lcTableName=RTRIM( &lcEnumTables..RmtTblName )
+					SCAN FOR &lcEnumTables..EXPORT=.T.
+						lcSproc=""
+						lcSQL=""
+						lcTableName=RTRIM( &lcEnumTables..RmtTblName )
 
-			lcThermMsg=STRTRAN( THIS_TABLE_LOC, '|1', lcTableName )
-			this.UpDateTherm( lnTableCount, lcThermMsg )
-			lnTableCount=lnTableCount+1
+						lcThermMsg=STRTRAN( THIS_TABLE_LOC, '|1', lcTableName )
+						this.UpDateTherm( lnTableCount, lcThermMsg )
+						lnTableCount=lnTableCount+1
 
-			* Build sproc string which will be used in Insert and Update triggers
+						* Build sproc string which will be used in Insert and Update triggers
 
-			* Grab table validation rules ( i.e. sprocs ) that were successfully created
-			* Grab them regardless if the user is just generating a script
-			IF &lcEnumTables..RuleExport =.T. ;
-		OR ( !this.DoUpsize AND !EMPTY( &lcEnumTables..RmtRule )) THEN
-	lcSproc=TBLRULE_COMMENT_LOC
-	lcSproc=lcSproc+ "execute "+RTRIM( &lcEnumTables..RRuleName )  ;
-		+ " @status output" + lcCRLF
-			ENDIF
+						* Grab table validation rules ( i.e. sprocs ) that were successfully created
+						* Grab them regardless if the user is just generating a script
+						IF &lcEnumTables..RuleExport =.T.  OR ( !this.DoUpsize AND !EMPTY( &lcEnumTables..RmtRule )) 
+							lcSproc = TBLRULE_COMMENT_LOC
+							lcSproc = lcSproc+ "execute "+RTRIM( &lcEnumTables..RRuleName ) + " @status output" + lcCRLF
+						ENDIF
 
-			* Grab RI code
-			lcInsertRI=&lcEnumTables..InsertRI
-			lcUpdateRI=&lcEnumTables..UpdateRI
-			lcDeleteRI=&lcEnumTables..DeleteRI
+						* Grab RI code
+						lcInsertRI=&lcEnumTables..InsertRI
+						lcUpdateRI=&lcEnumTables..UpdateRI
+						lcDeleteRI=&lcEnumTables..DeleteRI
 
-			* Grab field validation sprocs
-			lcEnumFields=RTRIM( this.EnumFieldsTbl )
-			SELECT ( lcEnumFields )
-			SCAN FOR RTRIM( &lcEnumFields..TblName )==lcTableName
-	lcFieldName=RTRIM( &lcEnumFields..RmtFldname )
+						* Grab field validation sprocs
+						lcEnumFields=RTRIM( this.EnumFieldsTbl )
+						SELECT ( lcEnumFields )
+						SCAN FOR RTRIM( &lcEnumFields..TblName )==lcTableName
+				lcFieldName=RTRIM( &lcEnumFields..RmtFldname )
 
-	* Only add it to the string if the sproc was successfully created
+				* Only add it to the string if the sproc was successfully created
 
-	IF &lcEnumFields..RuleExport =.T. ;
-			OR ( !this.DoUpsize AND !EMPTY( &lcEnumFields..RmtRule )) THEN
-		lcSproc=lcSproc + STRTRAN( FLDRULE_COMMENT_LOC, "|1", lcFieldName )
-		lcSproc=lcSproc + "execute " + RTRIM( &lcEnumFields..RRuleName ) + " @status output" + lcCRLF
-	ENDIF
+				IF &lcEnumFields..RuleExport =.T. ;
+						OR ( !this.DoUpsize AND !EMPTY( &lcEnumFields..RmtRule )) THEN
+					lcSproc=lcSproc + STRTRAN( FLDRULE_COMMENT_LOC, "|1", lcFieldName )
+					lcSproc=lcSproc + "execute " + RTRIM( &lcEnumFields..RRuleName ) + " @status output" + lcCRLF
+				ENDIF
 
 			ENDSCAN
 
 			SELECT ( lcEnumTables )
 
 			* Strings used in all the triggers:
-			lcStatus="DECLARE @status char( 10 )  " + STATUS_COMMENT_LOC + lcCRLF
-			lcStatus=lcStatus + "SELECT @status='Succeeded'" + lcCRLF
-			lcRollBack=ROLLBACK_LOC + lcCRLF + "IF @status='Failed'" + lcCRLF +;
-	"ROLLBACK TRANSACTION" + lcCRLF
+			lcStatus   = "DECLARE @status char( 10 )  " + STATUS_COMMENT_LOC + lcCRLF
+			lcStatus   = lcStatus + "SELECT @status='Succeeded'" + lcCRLF
+			lcRollBack = ROLLBACK_LOC + lcCRLF + "IF @status='Failed'" + lcCRLF +"ROLLBACK TRANSACTION" + lcCRLF
 
 			IF !EMPTY( lcInsertRI ) OR !EMPTY( lcSproc ) THEN
 
 	* Create insert trigger
-	lcTrigName=ITRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( ITRIG_PREFIX ))
-	lcSQL="CREATE TRIGGER " + lcTrigName
-	lcSQL=lcSQL + " ON " + lcTableName + " FOR INSERT AS " + lcCRLF
-	lcSQL=lcSQL + lcStatus + lcSproc + lcInsertRI
-	lcSQL=lcSQL + lcRollBack
+	lcTrigName = ITRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( ITRIG_PREFIX ))
+
+	lcSQL = "CREATE TRIGGER " + lcTrigName
+	lcSQL = lcSQL + " ON " + lcTableName + " FOR INSERT AS " + lcCRLF
+	lcSQL = lcSQL + lcStatus + lcSproc + lcInsertRI
+	lcSQL = lcSQL + lcRollBack
+	
 	IF this.DoUpsize THEN
 		llRetVal=this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
 		IF !llRetVal THEN
@@ -6239,45 +6235,43 @@ FUNCTION CreateTriggers
 			ENDIF
 
 			IF !EMPTY( lcUpdateRI ) OR !EMPTY( lcSproc ) THEN
-
-	* Create update trigger
-	lcTrigName=UTRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( UTRIG_PREFIX ))
-	lcSQL="CREATE TRIGGER " + lcTrigName
-	lcSQL=lcSQL + " ON " + lcTableName + " FOR UPDATE AS " + lcCRLF
-	lcSQL=lcSQL + lcStatus + lcSproc + lcUpdateRI
-	lcSQL=lcSQL + lcRollBack
-	IF this.DoUpsize THEN
-		llRetVal=this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
-		IF !llRetVal THEN
-			this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
-			REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
-				RIErrNo WITH lnError
-		ENDIF
-	ENDIF
-	REPLACE &lcEnumTables..UpdateRI WITH lcSQL, ;
-		&lcEnumTables..UtrigName WITH lcTrigName, ;
-		&lcEnumTables..UpdateX WITH llRetVal
+				* Create update trigger
+				lcTrigName = UTRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( UTRIG_PREFIX ))
+				lcSQL      = "CREATE TRIGGER " + lcTrigName
+				lcSQL      = lcSQL + " ON " + lcTableName + " FOR UPDATE AS " + lcCRLF
+				lcSQL      = lcSQL + lcStatus + lcSproc + lcUpdateRI
+				lcSQL      = lcSQL + lcRollBack
+				IF this.DoUpsize THEN
+					llRetVal=this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
+					IF !llRetVal THEN
+						this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
+						REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
+							RIErrNo WITH lnError
+					ENDIF
+				ENDIF
+				REPLACE &lcEnumTables..UpdateRI WITH lcSQL, ;
+					&lcEnumTables..UtrigName WITH lcTrigName, ;
+					&lcEnumTables..UpdateX WITH llRetVal
 			ENDIF
 
 			IF !EMPTY( lcDeleteRI ) THEN
-
-	* Create delete trigger
-	lcTrigName=DTRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( DTRIG_PREFIX ))
-	lcSQL="CREATE TRIGGER " + lcTrigName
-	lcSQL=lcSQL + " ON " + lcTableName + " FOR DELETE AS " + lcCRLF
-	lcSQL=lcSQL + lcStatus + lcDeleteRI
-	lcSQL=lcSQL + lcRollBack
-	IF this.DoUpsize THEN
-		llRetVal=this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
-		IF !llRetVal THEN
-			this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
-			REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
-				RIErrNo WITH lnError
-		ENDIF
-	ENDIF
-	REPLACE &lcEnumTables..DeleteRI WITH lcSQL, ;
-		&lcEnumTables..DtrigName WITH lcTrigName, ;
-		&lcEnumTables..DeleteX WITH llRetVal
+				* Create delete trigger
+				lcTrigName=DTRIG_PREFIX + LEFT( lcTableName, MAX_NAME_LENGTH-LEN( DTRIG_PREFIX ))
+				lcSQL="CREATE TRIGGER " + lcTrigName
+				lcSQL=lcSQL + " ON " + lcTableName + " FOR DELETE AS " + lcCRLF
+				lcSQL=lcSQL + lcStatus + lcDeleteRI
+				lcSQL=lcSQL + lcRollBack
+				IF this.DoUpsize THEN
+					llRetVal=this.ExecuteTempSPT( lcSQL, @lnError, @lcErrMsg )
+					IF !llRetVal THEN
+						this.StoreError( lnError, lcErrMsg, lcSQL, TRIG_ERR_LOC, lcTableName, TRIGGER_LOC )
+						REPLACE &lcEnumTables..RIError WITH lcErrMsg ADDITIVE, ;
+							RIErrNo WITH lnError
+					ENDIF
+				ENDIF
+				REPLACE &lcEnumTables..DeleteRI WITH lcSQL, ;
+					&lcEnumTables..DtrigName WITH lcTrigName, ;
+					&lcEnumTables..DeleteX WITH llRetVal
 			ENDIF
 
 		ENDSCAN
@@ -6332,19 +6326,19 @@ FUNCTION GetRiInfo
 		l_chitable=LOWER( mydbcpar.objectname )
 		l_start=1
 		DO WHILE l_start<=LEN( property )
-			l_size=ASC( SUBSTR( property, l_start, 1 ))+;
-	( ASC( SUBSTR( property, l_start+1, 1 ))*256 )+;
-	( ASC( SUBSTR( property, l_start+2, 1 ))*256^2 )+;
-	( ASC( SUBSTR( property, l_start+3, 1 ))*256^3 )
-			l_key=SUBSTR( property, l_start+6, 1 )
-			l_value=SUBSTR( property, l_start+7, l_size-8 )
+			l_size = ASC( SUBSTR( property, l_start, 1 ))+;
+				( ASC( SUBSTR( property, l_start+1, 1 ))*256 )+;
+				( ASC( SUBSTR( property, l_start+2, 1 ))*256^2 )+;
+				( ASC( SUBSTR( property, l_start+3, 1 ))*256^3 )
+			l_key   = SUBSTR( property, l_start+6, 1 )
+			l_value = SUBSTR( property, l_start+7, l_size-8 )
 			DO CASE
-	CASE l_key==CHR( KEY_CHILDTAG )
-		l_chitag=l_value
-	CASE l_key==CHR( KEY_RELTABLE )
-		l_partable=LOWER( l_value )
-	CASE l_key==CHR( KEY_RELTAG )
-		l_partag=l_value
+			CASE l_key==CHR( KEY_CHILDTAG )
+				l_chitag=l_value
+			CASE l_key==CHR( KEY_RELTABLE )
+				l_partable=LOWER( l_value )
+			CASE l_key==CHR( KEY_RELTAG )
+				l_partag=l_value
 			ENDCASE
 			l_start=l_start+l_size
 		ENDDO
@@ -6360,21 +6354,18 @@ FUNCTION GetRiInfo
 
 		* Child table
 		LOCATE FOR IndexName=RTRIM( l_chitable ) AND TagName=RTRIM( l_chitag )
-		l_chiexpr=&lcEnumIndexesTbl..RmtExpr
+		l_chiexpr = &lcEnumIndexesTbl..RmtExpr
 
 		* Translate ri characters ( RCI ) into words ( Restrict, Cascade, Ignore )
-		l_delete=UPPER( SUBSTR( mydbc.riinfo, d_deletespot, 1 ))
-		l_delete=IIF( l_delete<>CASCADE_CHAR_LOC AND l_delete<>RESTRICT_CHAR_LOC, ;
-			IGNORE_CHAR_LOC, l_delete )
-		l_update=UPPER( SUBSTR( mydbc.riinfo, d_updatespot, 1 ))
-		l_update=IIF( l_update<>CASCADE_CHAR_LOC AND l_update<>RESTRICT_CHAR_LOC, ;
-			IGNORE_CHAR_LOC, l_update )
-		l_insert=UPPER( SUBSTR( mydbc.riinfo, d_insertspot, 1 ))
-		l_insert=IIF( l_insert<>CASCADE_CHAR_LOC AND l_insert<>RESTRICT_CHAR_LOC, ;
-			IGNORE_CHAR_LOC, l_insert )
+		l_delete = UPPER( SUBSTR( mydbc.riinfo, d_deletespot, 1 ))
+		l_delete = IIF( l_delete<>CASCADE_CHAR_LOC AND l_delete<>RESTRICT_CHAR_LOC, IGNORE_CHAR_LOC, l_delete )
+		l_update = UPPER( SUBSTR( mydbc.riinfo, d_updatespot, 1 ))
+		l_update = IIF( l_update<>CASCADE_CHAR_LOC AND l_update<>RESTRICT_CHAR_LOC, IGNORE_CHAR_LOC, l_update )
+		l_insert = UPPER( SUBSTR( mydbc.riinfo, d_insertspot, 1 ))
+		l_insert = IIF( l_insert<>CASCADE_CHAR_LOC AND l_insert<>RESTRICT_CHAR_LOC, IGNORE_CHAR_LOC, l_insert )
 
-		l_rmtpartable=this.RemotizeName( l_partable )
-		l_rmtchitable=this.RemotizeName( l_chitable )
+		l_rmtpartable = this.RemotizeName( l_partable )
+		l_rmtchitable = this.RemotizeName( l_chitable )
 
 		* See if there are multiple relations between the same two tables
 		SELECT COUNT( * ) FROM ( lcEnumRelsTbl ) ;
@@ -6526,12 +6517,13 @@ FUNCTION RedirectApp
 
 	* need to take out password if conndef created and user doesn't want pwd saved
 	IF !this.ViewConnection=="" AND !this.ExportSavePwd AND !llRenamed THEN
-		lcRConnString=DBGETPROP( this.ViewConnection, "connection", "connectstring" )
-		lcRPwd=this.ParseConnectString( lcRConnString, "pwd=" )
-		lcRConnString=STRTRAN( lcRConnString, "PWD="+lcRPwd+";" )
-		lcRConnString=STRTRAN( lcRConnString, "PWD="+lcRPwd )
-		lcRConnString=STRTRAN( lcRConnString, "pwd="+lcRPwd+";" )
-		lcRConnString=STRTRAN( lcRConnString, "pwd="+lcRPwd )
+		lcRConnString = DBGETPROP( this.ViewConnection, "connection", "connectstring" )
+		lcRPwd        = this.ParseConnectString( lcRConnString, "pwd=" )
+		lcRConnString = STRTRAN( lcRConnString, "PWD="+lcRPwd+";" )
+		lcRConnString = STRTRAN( lcRConnString, "PWD="+lcRPwd )
+		lcRConnString = STRTRAN( lcRConnString, "pwd="+lcRPwd+";" )
+		lcRConnString = STRTRAN( lcRConnString, "pwd="+lcRPwd )
+
 		DBSETPROP( this.ViewConnection, "connection", "connectstring", lcRConnString )
 	ENDIF
 
