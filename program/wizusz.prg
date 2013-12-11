@@ -28,62 +28,66 @@ DEFINE CLASS UpsizeEngine AS WizEngineAll of WZEngine.prg
 *******************************************
 
 *ODBC-related properties
-MasterConnHand=0
-CONNECTSTRING=""
-DataSourceName=""
-ServerType="SQL Server"
-CurrentServerType=""
-ServerVer=0
-UserConnection=""
-ViewConnection=""
-UserName=""
-USERID=0
-MyError=0
-FETCHMEMO=.F.
+MasterConnHand    = 0
+CONNECTSTRING     = ""
+DataSourceName    = ""
+ServerType        = "SQL Server"
+CurrentServerType = ""
+ServerVer         = 0
+UserConnection    = ""
+ViewConnection    = ""
+UserName          = ""
+USERID            = 0
+MyError           = 0
+FETCHMEMO         = .F.
+
 
 *Navigation variables
-DeviceRecalc=.T.
-AnalyzeTablesRecalc=.T.
-AnalyzeFieldsRecalc=.T.
-AnalyzeIndexesRecalc=.T.
-ChooseTargetDBRecalc=.T.
-TableCboRecalc=.T.
-GetRiInfoRecalc=.T.
-EligibleRelsRecalc=.T.
-DataSourceChosen=.F.
-DSNChange=.F.
-NoDataSourceRightNow=.F.
-GetConnDefsRecalc=.T.
-DeviceLogChosen=.F.
-DeviceDBChosen=.F.
-SourceDBChosen=.F.
-GridFilled=.F.
+DeviceRecalc         = .T.
+AnalyzeTablesRecalc  = .T.
+AnalyzeFieldsRecalc  = .T.
+AnalyzeIndexesRecalc = .T.
+ChooseTargetDBRecalc = .T.
+TableCboRecalc       = .T.
+GetRiInfoRecalc      = .T.
+EligibleRelsRecalc   = .T.
+DataSourceChosen     = .F.
+DSNChange            = .F.
+NoDataSourceRightNow = .F.
+GetConnDefsRecalc    = .T.
+DeviceLogChosen      = .F.
+DeviceDBChosen       = .F.
+SourceDBChosen       = .F.
+GridFilled           = .F.
+
 
 *Device properties
-DeviceNumbersFree=0
-DeviceDBName=""
-DeviceDBPName=""
-DeviceDBSize=0
-DeviceDBNumber=0
-DeviceDBNew=.F.
-DeviceLogName=""
-DeviceLogPName=""
-DeviceLogSize=0
-DeviceLogNumber=0
-DeviceLogNew=.F.
-MasterPath=""
-NewDeviceCount=0
-DefaultFreeSpace=0
-DeviceDBInDefa=.F.		&&used to in Device class, DeviceThingOK method
-DeviceLogInDefa=.F.
-DBonDefault=.F.
+DeviceNumbersFree = 0
+DeviceDBName      = ""
+DeviceDBPName     = ""
+DeviceDBSize      = 0
+DeviceDBNumber    = 0
+DeviceDBNew       = .F.
+DeviceLogName     = ""
+DeviceLogPName    = ""
+DeviceLogSize     = 0
+DeviceLogNumber   = 0
+DeviceLogNew      = .F.
+MasterPath        = ""
+NewDeviceCount    = 0
+DefaultFreeSpace  = 0
+DeviceDBInDefa    = .F.		&&used to in Device class, DeviceThingOK method
+DeviceLogInDefa   = .F.
+DBonDefault       = .F.
+
 
 *Server Database properties
-CreateNewDB=.F.
-ServerFreeSpace=-5
-ServerDBName=""
-ServerDBSize=0
-ServerLogSize=0
+CreateNewDB     = .F.
+ServerFreeSpace = -5
+ServerDBName    = ""
+ServerDBSize    = 0
+ServerLogSize   = 0
+
 
 *Oracle Wizard properties
 
@@ -92,59 +96,61 @@ TBFoxTableSize = 0
 TBFoxIndexSize = 0
 
 *Tablespaces Step properties
-TSNewTableTS = .F.
-TSNewIndexTS = .F.
-TSTableTSName = ""
-TSIndexTSName = ""
-TSDefaultTSName = ""
-TSPermTablespaces =	.T.
-TSNew = .F.
-TSDone = .F.
+TSNewTableTS      = .F.
+TSNewIndexTS      = .F.
+TSTableTSName     = ""
+TSIndexTSName     = ""
+TSDefaultTSName   = ""
+TSPermTablespaces = .T.
+TSNew             = .F.
+TSDone            = .F.
+
 
 *Tablespace File Step properties
 TSFTableFileName = ""
 TSFIndexFileName = ""
 TSFTableFileSize = 0
 TSFIndexFileSize = 0
-TSFDone = .F.
+TSFDone          = .F.
 
 *Cluster Table Step properties
 CLClustersDone = .F.
-CLTablesDone = .F.
-CLKeysDone = .F.
+CLTablesDone   = .F.
+CLKeysDone     = .F.
 
 *Export properties
-SourceDB=""
-ExportIndexes=.T.
-ExportValidation=.T.
-ExportRelations=.T.
-ExportDRI=.F.
-ExportStructureOnly=.F.
-ExportDefaults=.T.
-ExportTimeStamp=.T.
-ExportTableToView=.F.
-ExportViewToRmt=.T.
-ExportSavePwd=.F.
-OVERWRITE=.F.					&&If .T., existing tables are overwritten
-NullOverride = 1
-ExportClustered=.F.				&& Default to Primary Keys not being Clustered
-ViewNameExtension=VIEW_NAME_EXTENSION_LOC
-ViewPrefixOrSuffix=1
-DropLocalTables=.F.
+SourceDB            = ""
+ExportIndexes       = .T.
+ExportValidation    = .T.
+ExportRelations     = .T.
+ExportDRI           = .F.
+ExportStructureOnly = .F.
+ExportDefaults      = .T.
+ExportTimeStamp     = .T.
+ExportTableToView   = .F.
+ExportViewToRmt     = .T.
+ExportSavePwd       = .F.
+OVERWRITE           = .F.					&&If .T., existing tables are overwritten
+NullOverride        = 1
+ExportClustered     = .F.				&& Default to Primary Keys not being Clustered
+ViewNameExtension   = VIEW_NAME_EXTENSION_LOC
+ViewPrefixOrSuffix  = 1
+DropLocalTables     = .F.
+
 
 *Names of tables created and aliases
-EnumFieldsTbl=""
-MappingTable=""					&& Same as EnumfieldsTbl, used again
-EnumTablesTbl=""
-EnumClustersTbl=""				&& Cluster table name
-EnumIndexesTbl=""
-DeviceTable=""					&& Same table, used twice
-DeviceTableAlias=""				&& Same as DeviceTable, used again by the log device screen
-ViewsTbl=""
-EnumRelsTbl=""
-ScriptTbl=""					&& Basically a big memo field for holding generated sql
-ErrTbl=""
-OraNames=""						&& Just a cursor of Oracle index names
+EnumFieldsTbl    = ""
+MappingTable     = ""					&& Same as EnumfieldsTbl, used again
+EnumTablesTbl    = ""
+EnumClustersTbl  = ""				&& Cluster table name
+EnumIndexesTbl   = ""
+DeviceTable      = ""					&& Same table, used twice
+DeviceTableAlias = ""				&& Same as DeviceTable, used again by the log device screen
+ViewsTbl         = ""
+EnumRelsTbl      = ""
+ScriptTbl        = ""					&& Basically a big memo field for holding generated sql
+ErrTbl           = ""
+OraNames         = ""						&& Just a cursor of Oracle index names
 
 *Action properties
 DoUpsize=.T.
@@ -189,280 +195,271 @@ DIMENSION Q[1]  && varbinary
 DIMENSION W[1]	&& blob
 
 *Other
-UserInput=""			&& Inputbox always puts user input here
-ZeroDefaultCreated=.F.	&& Flag set true after zero default has been created
-ScriptTblCreated=.F.
-ProcessingOutput=.F.	&& Set to .T. after user clicks Finish button
-OldRow=1				&& Used by type mapping grid to see if row changed
-OldType=""				&& Used by type mapping grid in case user wants to undo change
-NormalShutdown=.F.		&& Flag used to prevent analysis files from getting nuked
-DataErrors=.F.
-NewProjName=""
-PwdInDef=.F.			&& See comment in page9 activate method
-RealClick=.T.			&& Flag for page9
-SaveErrors=.T.			&& Save error tables, set in BuildReport method
-ZDUsed=.F.				&& So that sql for zero default included ( if appropriate ) in sql script
-FiltCond=""				&& Used on type mapping page
-NewDir=""				&& Directory created to store tables etc. the upsizing wizard creates
-CreatedNewDir=.F.
-KeepNewDir=.F.
-SQLServer=.T.			&& True if we're connected to SQL Server
-TimeStampName=""		&& Name used for all timestamp fields ( if any ) that are added
-IdentityName = ""		&& Name used for all identity fields ( if any ) that are added
-TruncLog = -1			&& Status of Trunc.log on chkpt. option of database
-cFinishMsg = ""			&& message to display at end
-*** DH 07/24/2013: this property isn't used anymore.
-*    nSQL7CompLevel = 0		&& SQL 7.0 database compatiblity level
+UserInput          = ""			&& Inputbox always puts user input here
+ZeroDefaultCreated = .F.	&& Flag set true after zero default has been created
+ScriptTblCreated   = .F.
+ProcessingOutput   = .F.	&& Set to .T. after user clicks Finish button
+OldRow             = 1				&& Used by type mapping grid to see if row changed
+OldType            = ""				&& Used by type mapping grid in case user wants to undo change
+NormalShutdown     = .F.		&& Flag used to prevent analysis files from getting nuked
+DataErrors         = .F.
+NewProjName        = ""
+PwdInDef           = .F.			&& See comment in page9 activate method
+RealClick          = .T.			&& Flag for page9
+SaveErrors         = .T.			&& Save error tables, set in BuildReport method
+ZDUsed             = .F.				&& So that sql for zero default included ( if appropriate ) in sql script
+FiltCond           = ""				&& Used on type mapping page
+NewDir             = ""				&& Directory created to store tables etc. the upsizing wizard creates
+CreatedNewDir      = .F.
+KeepNewDir         = .F.
+SQLServer          = .T.			&& True if we're connected to SQL Server
+TimeStampName      = ""		&& Name used for all timestamp fields ( if any ) that are added
+IdentityName       = ""		&& Name used for all identity fields ( if any ) that are added
+TruncLog           = -1			&& Status of Trunc.log on chkpt. option of database
+cFinishMsg         = ""			&& message to display at end
 
 * Properties added from JEI
 DIMENSION aChooseViews[1]
 DIMENSION aDataErrTbls[1]
-ServerISLocal = .F.		&& .T. - SQL Server is on current machine, .F. - SQL Server is on remote machine
+ServerISLocal    = .F.		&& .T. - SQL Server is on current machine, .F. - SQL Server is on remote machine
 NotUseBulkInsert = .f.	&& .T. - Always not use Bulk Insert
 
 * Extension object.
-
 oExtension = .NULL.
 
 * Value to use for blank Date and DateTime values.
-
 BlankDateValue = .NULL.
 
 * Default folder to use for report information.
-
 ReportDir = ''
 
-	FUNCTION Init( tcReturnToProc, tcProcedure )
-		dodefault( tcReturnToProc, tcProcedure )
-		this.ReportDir = fullpath( NEW_DIRNAME_LOC )
+FUNCTION Init( tcReturnToProc, tcProcedure )
+dodefault( tcReturnToProc, tcProcedure )
+this.ReportDir = fullpath( NEW_DIRNAME_LOC )
 
 
 * When the connection handle is set, get the connection string, set the
 * connection properties, and get the server version.
 
-	FUNCTION MasterConnHand_Assign( tnHandle )
-		with This
-			.MasterConnHand = tnHandle
+FUNCTION MasterConnHand_Assign( tnHandle )
+with This
+	.MasterConnHand = tnHandle
 *** DH 12/06/2012: added IF as suggested by Matt Slay to prevent problem in
 *** SetConnProps when tnHandle is 0.
-			IF tnHandle > 0
-				.ServerVer      = .GetServerVersion()
-				.ConnectString  = sqlgetprop( tnHandle, 'ConnectString' )
-				.SetConnProps()
+	IF tnHandle > 0
+		.ServerVer      = .GetServerVersion()
+		.ConnectString  = sqlgetprop( tnHandle, 'ConnectString' )
+		.SetConnProps()
 *** DH 12/06/2012: added ENDIF to match IF
-			ENDIF
-		endwith
+	ENDIF
+endwith
 
 
 * Determine the server version.
 
-	FUNCTION GetServerVersion
-		local lnhdbc, ;
-			lcName, ;
-			lcbName, ;
-			lnReturn
-		declare short SQLGetInfo in odbc32 ;
-			integer hdbc, integer fInfoType, string @cName, ;
-			integer cNameMax, integer @cbName
-		lnhdbc   = sqlgetprop( this.MasterConnHand, 'ODBChdbc' )
-		lcName   = space( 128 )
-		lcbName  = 0
-		lnReturn = sqlgetinfo( lnhdbc, SQL_DBMS_VER, @lcName, 128, @lcbName )
-		IF lnReturn = SQL_SUCCESS
-			lnReturn = val( left( lcName, at( chr( 0 ), lcName ) - 1 ))
-		ELSE
-			lnReturn = -1
-		ENDIF
-		return lnReturn
+FUNCTION GetServerVersion
+local lnhdbc, ;
+	lcName, ;
+	lcbName, ;
+	lnReturn
+declare short SQLGetInfo in odbc32 ;
+	integer hdbc, integer fInfoType, string @cName, ;
+	integer cNameMax, integer @cbName
+lnhdbc   = sqlgetprop( this.MasterConnHand, 'ODBChdbc' )
+lcName   = space( 128 )
+lcbName  = 0
+lnReturn = sqlgetinfo( lnhdbc, SQL_DBMS_VER, @lcName, 128, @lcbName )
+IF lnReturn = SQL_SUCCESS
+	lnReturn = val( left( lcName, at( chr( 0 ), lcName ) - 1 ))
+ELSE
+	lnReturn = -1
+ENDIF
+return lnReturn
 
 
-    FUNCTION ProcessOutput
-        LOCAL lcSQL, lcMsg
-        public oEngine
+FUNCTION ProcessOutput
+LOCAL lcSQL, lcMsg
+public oEngine
 
-        this.ProcessingOutput=.T.
+this.ProcessingOutput=.T.
 
-        *Let user bail if they want
-        oEngine = This
-        ON ESCAPE OEngine.Esc_proc
+*Let user bail if they want
+oEngine = This
+ON ESCAPE OEngine.Esc_proc
 
-		this.InitTherm( 'Preparing server for upsizing', 100 )
-		this.GetChooseView()
+this.InitTherm( 'Preparing server for upsizing', 100 )
+this.GetChooseView()
 
-        IF this.SQLServer
+IF this.SQLServer
+	* SQL Server: create devices
+	this.UpdateTherm( 5, 'Setting up devices' )
+	this.DealWithDevices()
 
-            *SQL Server: create devices
-			this.UpdateTherm( 5, 'Setting up devices' )
-            this.DealWithDevices()
+	* SQL Server: create database
+	this.UpdateTherm( 10, 'Creating target database' )
+	this.CreateTargetDB()
 
-            *SQL Server: create database
-			this.UpdateTherm( 10, 'Creating target database' )
-            this.CreateTargetDB()
+	this.UpdateTherm( 15, 'Checking for local server' )
+	this.CheckForLocalServer()
 
-			*{ ADD JEI - RKR - 2005.03.28
-			this.UpdateTherm( 15, 'Checking for local server' )
-			this.CheckForLocalServer()
-			*} ADD JEI - RKR - 2005.03.28
+	* Connect to target database
+	this.UpdateTherm( 30, 'Connecting to database' )
+	lcSQL="use " + ALLTRIM( this.ServerDBName )
+	this.ExecuteTempSPT( lcSQL )
 
-            *Connect to target database
-			this.UpdateTherm( 30, 'Connecting to database' )
-            lcSQL="use " + ALLTRIM( this.ServerDBName )
-            =this.ExecuteTempSPT( lcSQL )
+	* set option Trunc.Log on chkpt. for database on server
+	this.UpdateTherm( 35, 'Setting database options' )
+	this.TruncLogOn()
+ENDIF
 
-            *set option Trunc.Log on chkpt. for database on server
-			this.UpdateTherm( 35, 'Setting database options' )
-            this.TruncLogOn()
+*Make sure everything's been analyzed that's going to be upsized
+this.UpdateTherm( 90, 'Setting database options' )
+this.AnalyzeFields()
 
-        ENDIF
+*create tablespaces, clusters and cluster indexes
+IF this.ServerType="Oracle"
+	this.CreateTablespaces()
+	this.CreateClusters()
+ENDIF
+raiseevent( This, 'CompleteProcess' )
 
-        *Make sure everything's been analyzed that's going to be upsized
-		this.UpdateTherm( 90, 'Setting database options' )
-        this.AnalyzeFields()
+*create tables
+this.CreateTables()
 
-        *create tablespaces, clusters and cluster indexes
-        IF this.ServerType="Oracle"
-            this.CreateTablespaces()
-            this.CreateClusters()
-        ENDIF
-		raiseevent( This, 'CompleteProcess' )
+*send data
+this.SendData()
 
-        *create tables
-        this.CreateTables()
+*create indexes
+this.AnalyzeIndexes()
 
-        *send data
-        this.SendData()
+*build RI code
+IF this.ExportRelations THEN
+	this.BuildRiCode()
+ENDIF
 
-        *create indexes
-        this.AnalyzeIndexes()
+IF this.ExportIndexes THEN
+	this.CreateIndexes()
+ENDIF
 
-        *build RI code
-        IF this.ExportRelations THEN
-            this.BuildRiCode()
-        ENDIF
+*deal with defaults and validation rules
+this.DefaultsAndRules()
 
-        IF this.ExportIndexes THEN
-            this.CreateIndexes()
-        ENDIF
+*create put rules and RI code into triggers
+this.CreateTriggers()
 
-        *deal with defaults and validation rules
-        this.DefaultsAndRules()
+*redirect app
+this.RedirectApp()
 
-        *create put rules and RI code into triggers
-        this.CreateTriggers()
+*do report stuff
+this.CreateScript
 
-        *redirect app
-        this.RedirectApp()
+this.BuildReport()
 
-        *do report stuff
-        this.CreateScript
+*done
+*reset option trunc. log on chkpt. to initial value
+IF this.SQLServer
+    this.TruncLogOff()
+ENDIF
 
-        this.BuildReport()
-
-        *done
-        *reset option trunc. log on chkpt. to initial value
-        IF this.SQLServer
-            this.TruncLogOff()
-        ENDIF
-
-        *test if all the tables were upsized. If not display warning message.
-        this.UpsizeComplete()
-        release oEngine
+*test if all the tables were upsized. If not display warning message.
+this.UpsizeComplete()
+release oEngine
 
 
 * Ensures the specified table is selected for export.
 
-	FUNCTION SelectTable( tcTable )
-		local llReturn, ;
-			lnSelect
-		llReturn = used( this.EnumTablesTbl )
-		IF llReturn
-			lnSelect = select()
-			select ( this.EnumTablesTbl )
-			locate for lower( trim( TBLNAME )) == lower( alltrim( tcTable ))
-			llReturn = found()
-			IF llReturn
-				replace EXPORT with .T.
-			ENDIF
-			select ( lnSelect )
-		ENDIF
-		return llReturn
+FUNCTION SelectTable( tcTable )
+local llReturn, ;
+	lnSelect
+llReturn = used( this.EnumTablesTbl )
+IF llReturn
+	lnSelect = select()
+	select ( this.EnumTablesTbl )
+	locate for lower( trim( TBLNAME )) == lower( alltrim( tcTable ))
+	llReturn = found()
+	IF llReturn
+		replace EXPORT with .T.
+	ENDIF
+	select ( lnSelect )
+ENDIF
+return llReturn
 
 
 * Select all tables for export.
 
-	FUNCTION SelectAllTables( tcTable )
-		local llReturn
-		llReturn = used( this.EnumTablesTbl )
-		IF llReturn
-			replace all EXPORT with .T. in ( this.EnumTablesTbl )
-		ENDIF
-		return llReturn
+FUNCTION SelectAllTables( tcTable )
+local llReturn
+llReturn = used( this.EnumTablesTbl )
+IF llReturn
+	replace all EXPORT with .T. in ( this.EnumTablesTbl )
+ENDIF
+return llReturn
 
 
-    FUNCTION ERROR
-        PARAMETERS nError, cMethod, nLine, oObject
-        LOCAL lcErrMsg, lnServerError
+FUNCTION ERROR
+PARAMETERS nError, cMethod, nLine, oObject
+LOCAL lcErrMsg, lnServerError
 
-        =AERROR( aErrArray )
-        nError=aErrArray[1]
-        this.MyError=nError
+=AERROR( aErrArray )
+nError=aErrArray[1]
+this.MyError=nError
 
-        DO CASE
-            CASE nError=1523
-                *User hit cancel button in ODBC dialog
-                this.HadError=.T.
-                RETURN .F.
+DO CASE
+CASE nError=1523
+    *User hit cancel button in ODBC dialog
+    this.HadError=.T.
+    RETURN .F.
 
-            CASE nError=15
-                *Not a table ( probably means the table is corrupt )
-                this.HadError=.T.
-                RETURN
+CASE nError=15
+    *Not a table ( probably means the table is corrupt )
+    this.HadError=.T.
+    RETURN
 
-            CASE nError=108
-                *File opened exclusive by someone ELSE
-                this.HadError=.T.
-                RETURN
+CASE nError=108
+    *File opened exclusive by someone ELSE
+    this.HadError=.T.
+    RETURN
 
-            CASE nError=1705 OR nError=3
-                *File access denied
-                *Should be caused only when the wizard tries to open
-                *all tables in database exclusively
-                this.HadError=.T.
-                RETURN
+CASE nError=1705 OR nError=3
+    *File access denied
+    *Should be caused only when the wizard tries to open
+    *all tables in database exclusively
+    this.HadError=.T.
+    RETURN
 
-            CASE nError=1976
-                *Table is not marked for current database
-                *Like 1705 above, should only happen in the this.Upsizable function
-                this.HadError=.T.
-                RETURN
+CASE nError=1976
+    *Table is not marked for current database
+    *Like 1705 above, should only happen in the this.Upsizable function
+    this.HadError=.T.
+    RETURN
 
-            CASE nError=1984
-                *Table definition and DBC are out of sync
-                *( Another error that could result from this.Upsizable )
-                this.HadError=.T.
-                RETURN
+CASE nError=1984
+    *Table definition and DBC are out of sync
+    *( Another error that could result from this.Upsizable )
+    this.HadError=.T.
+    RETURN
 
-            CASE nError=1498
-                *Attempt to create remote view failed because of bogus SQL
-                this.HadError=.T.
-                RETURN
+CASE nError=1498
+    *Attempt to create remote view failed because of bogus SQL
+    this.HadError=.T.
+    RETURN
 
-            CASE nError=1160 and not this.lQuiet
-                *Out of disk space
-                lnUserChoice=MESSAGEBOX( NO_DISK_SPACE_LOC, RETRY_CANCEL+ICON_EXCLAMATION, TITLE_TEXT_LOC )
-                IF lnUserChoice=RETRY_CHOICE THEN
-                    RETRY
-                ENDIF
-            CASE nError=1577
-                *Table "name" is referenced in a relation
-                *Occurs when drop table that's in a relation
-                this.HadError=.T.
-                RETURN
+CASE nError=1160 and not this.lQuiet
+    *Out of disk space
+    lnUserChoice=MESSAGEBOX( NO_DISK_SPACE_LOC, RETRY_CANCEL+ICON_EXCLAMATION, TITLE_TEXT_LOC )
+    IF lnUserChoice=RETRY_CHOICE THEN
+        RETRY
+    ENDIF
+CASE nError=1577
+    *Table "name" is referenced in a relation
+    *Occurs when drop table that's in a relation
+    this.HadError=.T.
+    RETURN
 
-        ENDCASE
+ENDCASE
 
-        *Unhandled errors->We're dead
-        WizEngineAll::ERROR( nError, cMethod, nLine, oObject )
+*Unhandled errors->We're dead
+WizEngineAll::ERROR( nError, cMethod, nLine, oObject )
 
 
 
